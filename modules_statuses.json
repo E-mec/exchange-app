@@ -1,4 +1,5 @@
 {
     "Auth": true,
-    "Helpers": true
+    "Helpers": true,
+    "Wallet": true
 }

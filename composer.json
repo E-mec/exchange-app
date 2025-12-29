@@ -13,7 +13,8 @@
         "php-open-source-saver/jwt-auth": "^2.8",
         "spatie/laravel-data": "^4.18",
         "spatie/laravel-medialibrary": "^11.17",
-        "spatie/laravel-permission": "^6.23"
+        "spatie/laravel-permission": "^6.23",
+        "ext-bcmath": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

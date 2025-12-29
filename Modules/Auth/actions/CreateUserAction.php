@@ -6,10 +6,9 @@ use App\Actions\SendOtpAction;
 use App\Enums\OtpTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Modules\Auth\app\Events\UserRegisteredEvent;
 use Modules\Auth\dtos\RequestDto\RegisterUserData;
 use Modules\Auth\enums\UserStatusEnum;
 use Modules\Auth\Models\User;
@@ -42,6 +41,8 @@ class CreateUserAction
             }
 
             app(SendOtpAction::class)->execute($user, OtpTypeEnum::REGISTRATION);
+
+            event(new UserRegisteredEvent($user));
 
             return $user;
         });
