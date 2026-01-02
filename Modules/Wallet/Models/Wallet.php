@@ -49,6 +49,15 @@ class Wallet extends Model
         return $this->hasMany(WalletTransaction::class);
     }
 
+    public static function forUser(int $userId, string $currency): ?self
+    {
+        return self::query()
+            ->where('user_id', $userId)
+            ->where('currency', $currency)
+            ->lockForUpdate() // IMPORTANT for transfers
+            ->first();
+    }
+
      protected static function newFactory(): WalletFactory
      {
           return WalletFactory::new();

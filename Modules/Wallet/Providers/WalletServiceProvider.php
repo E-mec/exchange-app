@@ -4,6 +4,10 @@ namespace Modules\Wallet\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Wallet\actions\ReleaseReservedFundsAction;
+use Modules\Wallet\actions\ReserveFundsAction;
+use Modules\Wallet\app\Interfaces\ReleaseReservedFunds;
+use Modules\Wallet\app\Interfaces\ReserveFunds;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,6 +31,9 @@ class WalletServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+
+
     }
 
     /**
@@ -36,6 +43,16 @@ class WalletServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        $this->app->bind(
+            ReleaseReservedFunds::class,
+            ReleaseReservedFundsAction::class
+        );
+
+        $this->app->bind(
+            ReserveFunds::class,
+            ReserveFundsAction::class
+        );
     }
 
     /**

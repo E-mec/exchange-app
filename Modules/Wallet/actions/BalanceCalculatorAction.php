@@ -38,9 +38,6 @@ final class BalanceCalculatorAction
         };
     }
 
-    /**
-     * @throws CustomException
-     */
     private function reserve(string $available, string $reserved, string $amount, int $scale): array
     {
         if (bccomp($available, $amount, $scale) < 0) {

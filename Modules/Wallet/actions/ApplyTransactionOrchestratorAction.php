@@ -28,7 +28,7 @@ final class ApplyTransactionOrchestratorAction
             $wallet = $this->walletLock->execute($payload['walletId']);
 
             // idempotency check
-            $existing = $this->idempotencyChecker->find($payload['idempotencyKey']);
+            $existing = $this->idempotencyChecker->execute($payload['idempotencyKey']);
             if ($existing) {
                 return $existing;
             }
@@ -41,10 +41,15 @@ final class ApplyTransactionOrchestratorAction
                 amount:    $payload['amount'],
                 type:      $payload['type']
             );
-            $after = $calc['after'];
+            $afterAvailable = $calc['available'];
+            $afterReserved  = $calc['reserved'];
 
             // update wallet balances
-            $this->updater->execute($wallet, $after, $after /* ledger snapshot */);
+            $this->updater->execute(
+                wallet: $wallet,
+                available: $afterAvailable,
+                reserved: $afterReserved
+            );
 
             // prepare ledger row
             $ledgerRow = [
@@ -54,7 +59,7 @@ final class ApplyTransactionOrchestratorAction
                 'type'            => $payload['type'],
                 'before_balance'  => $before,
                 'amount'          => $payload['amount'],
-                'balance_after'   => $after,
+                'balance_after'   => $afterAvailable,
                 'reference'       => $payload['reference'],
                 'idempotency_key' => $payload['idempotencyKey'],
                 'meta'            => $payload['meta'],
