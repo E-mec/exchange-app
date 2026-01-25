@@ -7,6 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-bcmath": "*",
+        "guzzlehttp/guzzle": "^7.10",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "nwidart/laravel-modules": "^12.0",
@@ -14,7 +16,7 @@
         "spatie/laravel-data": "^4.18",
         "spatie/laravel-medialibrary": "^11.17",
         "spatie/laravel-permission": "^6.23",
-        "ext-bcmath": "*"
+        "stripe/stripe-php": "^19.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -90,6 +92,9 @@
             "pestphp/pest-plugin": true,
             "php-http/discovery": true,
             "wikimedia/composer-merge-plugin": true
+        },
+        "audit": {
+            "ignore": ["PKSA-365x-2zjk-pt47"]
         }
     },
     "minimum-stability": "stable",

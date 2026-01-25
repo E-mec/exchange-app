@@ -1,5 +1,6 @@
 {
     "Auth": true,
     "Helpers": true,
-    "Wallet": true
+    "Wallet": true,
+    "Payment": true
 }

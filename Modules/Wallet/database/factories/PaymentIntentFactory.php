@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Wallet\Database\Factories;
+namespace Modules\Wallet\database\factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
