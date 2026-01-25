@@ -10,8 +10,5 @@ Route::middleware(['auth:api'])
         Route::post('initialize', [PaymentController::class, 'initialize']);
     });
 
-Route::post('/webhooks/{provider}', [
-    WebhookController::class,
-    'handle'
-])->middleware([VerifyPaymentWebhook::class]);
+Route::post('/webhooks/{provider}',WebhookController::class)->middleware([VerifyPaymentWebhook::class]);
 

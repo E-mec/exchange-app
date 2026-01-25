@@ -11,14 +11,14 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Payment\Models\Payment;
 
-class PaymentInitialized
+class PaymentSuccessful
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(public Payment $payment) {}
+    public function __construct( public Payment $payment ) {}
 
     /**
      * Get the channels the event should be broadcast on.

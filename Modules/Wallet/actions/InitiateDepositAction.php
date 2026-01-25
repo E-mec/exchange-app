@@ -30,7 +30,7 @@ class InitiateDepositAction
            currency: $currency,
            amount: $amount,
            reference: $reference,
-            channel: $channel,
+            provider: $channel,
         ));
 
         return $intent;

@@ -22,7 +22,7 @@ class DepositInitiatedEvent
         public string $currency,
         public string $amount,
         public string $reference,
-        public string $channel,
+        public string $provider,
     ) {}
 
     /**

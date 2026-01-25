@@ -4,6 +4,7 @@ namespace Modules\Wallet\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Modules\Auth\app\Events\UserRegisteredEvent;
+use Modules\Payment\app\Events\PaymentSuccessful;
 use Modules\Wallet\app\Listeners\CreateWalletForUser;
 
 class EventServiceProvider extends ServiceProvider
@@ -16,6 +17,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         UserRegisteredEvent::class => [
             CreateWalletForUser::class
+        ],
+        PaymentSuccessful::class => [
+
         ]
     ];
 

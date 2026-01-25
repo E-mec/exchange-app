@@ -16,9 +16,9 @@ class PaypalGateway implements PaymentGatewayInterface
 
     public function __construct()
     {
-        $this->baseUrl  = config('payment.providers.paypal.sandbox')
-            ? 'https://api-m.sandbox.paypal.com'
-            : 'https://api-m.paypal.com';
+        $this->baseUrl = config('payment.providers.paypal.mode') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
 
         $this->clientId = config('payment.providers.paypal.client_id');
         $this->secret   = config('payment.providers.paypal.secret');
@@ -26,18 +26,21 @@ class PaypalGateway implements PaymentGatewayInterface
 
     protected function token(): string
     {
-        $res = Http::asForm()
-            ->withBasicAuth($this->clientId, $this->secret)
-            ->post($this->baseUrl . '/v1/oauth2/token', [
-                'grant_type' => 'client_credentials',
-            ]);
+        return cache()->remember('paypal_token', 480, function () {
+            $res = Http::asForm()
+                ->withBasicAuth($this->clientId, $this->secret)
+                ->post($this->baseUrl . '/v1/oauth2/token', [
+                    'grant_type' => 'client_credentials',
+                ]);
 
-        if (! $res->successful()) {
-            throw new RuntimeException('PayPal auth failed');
-        }
+            if (! $res->successful()) {
+                throw new RuntimeException('PayPal auth failed');
+            }
 
-        return $res->json('access_token');
+            return $res->json('access_token');
+        });
     }
+
 
     public function initialize(array $data): array
     {
@@ -48,6 +51,7 @@ class PaypalGateway implements PaymentGatewayInterface
                 'intent' => 'CAPTURE',
                 'purchase_units' => [[
                     'reference_id' => $data['reference'],
+                    'custom_id'    => $data['reference'],
                     'amount' => [
                         'currency_code' => strtoupper($data['currency']),
                         'value' => number_format($data['amount'], 2, '.', ''),
