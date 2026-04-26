@@ -4,6 +4,7 @@ namespace Modules\Wallet\app\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Payment\Enums\PaymentProviderEnum;
 use Modules\Wallet\enums\CurrencyEnum;
 
 class InitiateDepositRequest extends FormRequest
@@ -16,8 +17,8 @@ class InitiateDepositRequest extends FormRequest
         return [
             'amount' => ['required', 'numeric', 'min:1'],
             'currency' => ['required', 'string', Rule::enum(CurrencyEnum::class)],
-            // @todo use an enum for the validation below
-            'deposit_channel' => ['required',  'string', 'in:paystack,flutterwave,bank,paypal']
+            'deposit_channel' => ['required',  'string', Rule::enum(PaymentProviderEnum::class)],
+            'idempotency_key' => ['required', 'uuid'],
         ];
     }
 

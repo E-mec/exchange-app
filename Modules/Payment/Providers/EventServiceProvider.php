@@ -4,12 +4,16 @@ namespace Modules\Payment\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Modules\Payment\app\Events\PaymentFailed;
+use Modules\Payment\app\Events\PaymentInitialized;
 use Modules\Payment\app\Events\PaymentSuccessful;
 use Modules\Payment\app\Listeners\InitializePaymentListener;
 use Modules\Wallet\app\Events\DepositInitiatedEvent;
 use Modules\Wallet\app\Listeners\CreditWalletOnConfirmedPayment;
 use Modules\Wallet\app\Listeners\FinalizeDebitListener;
 use Modules\Wallet\app\Listeners\ReleaseReservedFundsListener;
+use Modules\Wallet\app\Listeners\SyncDepositIntentFailedListener;
+use Modules\Wallet\app\Listeners\SyncDepositIntentInitializedListener;
+use Modules\Wallet\app\Listeners\SyncDepositIntentSuccessfulListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -19,15 +23,18 @@ class EventServiceProvider extends ServiceProvider
      * @var array<string, array<int, string>>
      */
     protected $listen = [
+        PaymentInitialized::class => [
+            SyncDepositIntentInitializedListener::class,
+        ],
 
-        /** ✅ PAYMENT SUCCESS */
         PaymentSuccessful::class => [
+            SyncDepositIntentSuccessfulListener::class,
             CreditWalletOnConfirmedPayment::class,
 //            FinalizeDebitListener::class,
         ],
 
-        /** ❌ PAYMENT FAILED */
         PaymentFailed::class => [
+            SyncDepositIntentFailedListener::class,
             ReleaseReservedFundsListener::class,
         ],
 

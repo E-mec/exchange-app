@@ -23,11 +23,17 @@ class PaymentIntent extends Model
         'amount',
         'currency',
         'status',
-        'channel'
+        'channel',
+        'idempotency_key',
+        'payment_id',
+        'provider_reference',
+        'checkout_url',
+        'meta',
     ];
 
     protected $casts = [
         'status' => StatusEnum::class,
+        'meta' => 'array',
     ];
 
     public function user(): BelongsTo

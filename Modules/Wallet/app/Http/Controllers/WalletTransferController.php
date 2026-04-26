@@ -17,5 +17,6 @@ class WalletTransferController extends Controller
     {
         $result = $action->execute($request->validated());
 
-        return successResponse('transfer successful', $result);    }
+        return successResponse('transfer successful', $result);
+    }
 }

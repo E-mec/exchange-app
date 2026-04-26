@@ -63,7 +63,10 @@ final class InitiateWithdrawalAction
                     'destination' => $payload['destination'],
                 ],
             ]);
+//            ProcessWithdrawalJob::dispatch($withdrawal);
+
             return $withdrawal->refresh()->load(['user', 'wallet']);
+
         });
     }
 }
