@@ -64,4 +64,47 @@ class PaystackGateway implements PaymentGatewayInterface
             'meta' => $data,
         ];
     }
+
+    public function payout(array $data): array
+    {
+        // Create transfer recipient first
+        $destination = $data['destination'] ?? [];
+
+        $recipientResponse = Http::withToken($this->secret)
+            ->post($this->baseUrl . '/transferrecipient', [
+                'type'           => $destination['type'] ?? 'nuban',
+                'name'           => $destination['account_name'] ?? 'Recipient',
+                'account_number' => $destination['account_number'],
+                'bank_code'      => $destination['bank_code'],
+                'currency'       => $data['currency'],
+            ]);
+
+        if (! $recipientResponse->successful()) {
+            throw new RuntimeException('Paystack recipient creation failed: ' . $recipientResponse->body());
+        }
+
+        $recipientCode = $recipientResponse->json('data.recipient_code');
+
+        // Initiate transfer
+        $response = Http::withToken($this->secret)
+            ->post($this->baseUrl . '/transfer', [
+                'source'    => 'balance',
+                'amount'    => (int) ($data['amount'] * 100), // kobo
+                'recipient' => $recipientCode,
+                'reference' => $data['reference'],
+                'reason'    => $data['meta']['reason'] ?? 'Withdrawal payout',
+            ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Paystack transfer failed: ' . $response->body());
+        }
+
+        $payload = $response->json('data');
+
+        return [
+            'provider_reference' => $payload['transfer_code'] ?? $payload['reference'],
+            'status'             => $payload['status'] ?? 'pending',
+            'meta'               => $payload,
+        ];
+    }
 }

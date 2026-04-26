@@ -1,11 +1,11 @@
 <?php
 
-
 namespace Modules\Wallet\actions;
 
 use Modules\Wallet\Models\Withdrawal;
 use Modules\Wallet\Enums\WithdrawalStatusEnum;
 use App\Exceptions\CustomException;
+use Modules\Wallet\app\Jobs\ProcessWithdrawalJob;
 
 final class ProcessWithdrawalAction
 {
@@ -18,12 +18,12 @@ final class ProcessWithdrawalAction
             throw new CustomException('Withdrawal not in pending state');
         }
 
-// 🔌 Call external provider here (Paystack, Flutterwave, etc)
-// $providerResponse = Provider::payout(...);
-
         $withdrawal->update([
             'status' => WithdrawalStatusEnum::PROCESSING,
         ]);
+
+        // Dispatch job to process payout asynchronously
+        ProcessWithdrawalJob::dispatch($withdrawal->reference);
 
         return $withdrawal->refresh();
     }

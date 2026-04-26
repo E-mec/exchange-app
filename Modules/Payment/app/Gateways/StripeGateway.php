@@ -58,4 +58,24 @@ class StripeGateway implements PaymentGatewayInterface
             'meta' => $session->toArray(),
         ];
     }
+
+    public function payout(array $data): array
+    {
+        $destination = $data['destination'] ?? [];
+
+        $payout = \Stripe\Payout::create([
+            'amount'   => (int) ($data['amount'] * 100),
+            'currency' => strtolower($data['currency']),
+            'metadata' => array_merge($data['meta'] ?? [], [
+                'reference' => $data['reference'],
+            ]),
+            'destination' => $destination['account_id'] ?? null,
+        ]);
+
+        return [
+            'provider_reference' => $payout->id,
+            'status'             => $payout->status ?? 'pending',
+            'meta'               => $payout->toArray(),
+        ];
+    }
 }

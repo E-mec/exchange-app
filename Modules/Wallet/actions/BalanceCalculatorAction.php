@@ -29,6 +29,8 @@ final class BalanceCalculatorAction
             TransactionTypeEnum::RESERVE_RELEASE => $this->release($available, $reserved, $amount, $scale),
 
             TransactionTypeEnum::DEBIT => $this->debit($available, $reserved, $amount, $scale),
+
+            default => throw new CustomException("Unsupported transaction type: {$type->value}"),
         };
     }
 

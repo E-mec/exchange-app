@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\app\Listeners;
 
+use Illuminate\Support\Facades\Log;
 use Modules\Wallet\actions\FinalizeWithdrawalAction;
 use Modules\Wallet\app\Events\WithdrawalSucceeded;
 use Modules\Wallet\Models\Withdrawal;
@@ -19,6 +20,9 @@ final class FinalizeWithdrawalListener
             ->first();
 
         if (! $withdrawal) {
+            Log::error('FinalizeWithdrawalListener: Withdrawal not found for reference, possible money leak.', [
+                'reference' => $event->reference,
+            ]);
             return;
         }
 

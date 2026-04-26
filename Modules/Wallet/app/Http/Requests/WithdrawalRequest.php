@@ -17,6 +17,12 @@ class WithdrawalRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01'],
             'currency' => ['required', 'string', Rule::enum(CurrencyEnum::class)],
             'destination' => ['required', 'array'],
+            'destination.type' => ['required', 'string', 'in:bank_account,mobile_money,wallet'],
+            'destination.account_number' => ['required_if:destination.type,bank_account', 'string'],
+            'destination.bank_code' => ['required_if:destination.type,bank_account', 'string'],
+            'destination.phone_number' => ['required_if:destination.type,mobile_money', 'string'],
+            'destination.provider' => ['required_if:destination.type,mobile_money', 'string'],
+            'destination.wallet_address' => ['required_if:destination.type,wallet', 'string'],
             'idempotency_key' => ['required', 'uuid'],
         ];
     }

@@ -53,6 +53,12 @@ class WalletServiceProvider extends ServiceProvider
             ReserveFunds::class,
             ReserveFundsAction::class
         );
+
+        // Bind PayoutProvider interface - Replace StubPayoutProvider with actual implementation
+        $this->app->bind(
+            \Modules\Wallet\app\Interfaces\PayoutProvider::class,
+            \Modules\Wallet\app\Providers\StubPayoutProvider::class
+        );
     }
 
     /**

@@ -19,6 +19,9 @@ final class InitiateWithdrawalAction
         protected ProcessWithdrawalAction $process,
     ) {}
 
+    /**
+     * @throws CustomException
+     */
     public function execute(array $payload): Withdrawal
     {
         return DB::transaction(/**
@@ -97,5 +100,7 @@ final class InitiateWithdrawalAction
             return $withdrawal->refresh()->load(['user', 'wallet']);
 
         });
+
+
     }
 }

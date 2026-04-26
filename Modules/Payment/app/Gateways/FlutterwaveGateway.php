@@ -64,4 +64,32 @@ class FlutterwaveGateway implements PaymentGatewayInterface
             'meta' => $d,
         ];
     }
+
+    public function payout(array $data): array
+    {
+        $destination = $data['destination'] ?? [];
+
+        $res = Http::withToken($this->secret)
+            ->post('https://api.flutterwave.com/v3/transfers', [
+                'account_bank'   => $destination['bank_code'] ?? null,
+                'account_number' => $destination['account_number'] ?? null,
+                'amount'         => $data['amount'],
+                'currency'       => $data['currency'],
+                'reference'      => $data['reference'],
+                'narration'      => $data['meta']['reason'] ?? 'Withdrawal payout',
+                'meta'           => $data['meta'] ?? [],
+            ]);
+
+        if (! $res->successful()) {
+            throw new RuntimeException('Flutterwave transfer failed: ' . $res->body());
+        }
+
+        $d = $res->json('data');
+
+        return [
+            'provider_reference' => (string) ($d['id'] ?? $data['reference']),
+            'status'             => $d['status'] ?? 'pending',
+            'meta'               => $d,
+        ];
+    }
 }

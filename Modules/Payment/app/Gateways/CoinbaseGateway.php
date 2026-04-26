@@ -64,4 +64,31 @@ class CoinbaseGateway implements PaymentGatewayInterface
         ];
     }
 
+    public function payout(array $data): array
+    {
+        $destination = $data['destination'] ?? [];
+
+        $response = Http::withHeaders([
+            'X-CC-Api-Key' => config('payment.coinbase.api_key'),
+            'X-CC-Version' => '2018-03-22',
+        ])->post('https://api.coinbase.com/v2/accounts/' . config('payment.coinbase.account_id') . '/transactions', [
+            'type'     => 'send',
+            'to'       => $destination['wallet_address'] ?? '',
+            'amount'   => $data['amount'],
+            'currency' => $data['currency'],
+            'idem'     => $data['reference'],
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Coinbase payout failed: ' . $response->body());
+        }
+
+        $txn = $response->json('data');
+
+        return [
+            'provider_reference' => $txn['id'] ?? $data['reference'],
+            'status'             => strtolower($txn['status'] ?? 'pending'),
+            'meta'               => $txn,
+        ];
+    }
 }

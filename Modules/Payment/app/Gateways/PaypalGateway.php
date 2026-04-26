@@ -102,4 +102,39 @@ class PaypalGateway implements PaymentGatewayInterface
             'meta' => $order,
         ];
     }
+
+    public function payout(array $data): array
+    {
+        $token = $this->token();
+        $destination = $data['destination'] ?? [];
+
+        $res = Http::withToken($token)
+            ->post($this->baseUrl . '/v1/payments/payouts', [
+                'sender_batch_header' => [
+                    'sender_batch_id' => $data['reference'],
+                    'email_subject'   => 'You have a payout!',
+                ],
+                'items' => [[
+                    'recipient_type' => $destination['type'] ?? 'EMAIL',
+                    'amount' => [
+                        'value'    => number_format($data['amount'], 2, '.', ''),
+                        'currency' => strtoupper($data['currency']),
+                    ],
+                    'receiver'       => $destination['email'] ?? $destination['wallet_address'] ?? '',
+                    'sender_item_id' => $data['reference'],
+                ]],
+            ]);
+
+        if (! $res->successful()) {
+            throw new RuntimeException('PayPal payout failed: ' . $res->body());
+        }
+
+        $batch = $res->json('batch_header');
+
+        return [
+            'provider_reference' => $batch['payout_batch_id'] ?? $data['reference'],
+            'status'             => strtolower($batch['batch_status'] ?? 'pending'),
+            'meta'               => $res->json(),
+        ];
+    }
 }
