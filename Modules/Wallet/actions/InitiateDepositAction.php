@@ -58,6 +58,8 @@ class InitiateDepositAction
                     provider: $channel,
                 ));
 
+                $intent = $intent->refresh();
+
                 $payment = collect($responses)->first(fn ($response) => is_array($response));
 
                 if (! is_array($payment) || ! isset($payment['checkout_url'])) {

@@ -1,7 +1,7 @@
 <?php
 
+use App\Exceptions\CustomException;
 use Modules\Wallet\actions\FailWithdrawalAction;
-use Modules\Wallet\actions\ReleaseReservedFundsAction;
 use Modules\Wallet\app\Interfaces\ReleaseReservedFunds;
 use Modules\Wallet\enums\WithdrawalStatusEnum;
 use Modules\Wallet\Models\Withdrawal;
@@ -44,4 +44,18 @@ test('fail withdrawal is idempotent', function () {
     $action->execute($withdrawal);
 
     expect($withdrawal->refresh()->status)->toBe(WithdrawalStatusEnum::FAILED);
+});
+
+test('it rejects failing a successful withdrawal', function () {
+    $withdrawal = Withdrawal::factory()->create([
+        'status' => WithdrawalStatusEnum::SUCCESS,
+    ]);
+
+    $release = Mockery::mock(ReleaseReservedFunds::class);
+    $release->shouldNotReceive('execute');
+
+    $action = new FailWithdrawalAction($release);
+
+    expect(fn () => $action->execute($withdrawal))
+        ->toThrow(CustomException::class, 'Successful withdrawals cannot be failed');
 });

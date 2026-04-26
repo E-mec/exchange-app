@@ -17,7 +17,9 @@ class WithdrawalSucceeded
     /**
      * Create a new event instance.
      */
-    public function __construct() {}
+    public function __construct(
+        public readonly string $reference,
+    ) {}
 
     /**
      * Get the channels the event should be broadcast on.

@@ -36,7 +36,9 @@ class WithdrawalFactory extends Factory
             'status'    => WithdrawalStatusEnum::PENDING,
             'failure_reason' => null,
             'meta' => [
-                'destination' => 'bank_account',
+                'destination' => [
+                    'type' => 'bank_account',
+                ],
             ],
         ];
     }
@@ -76,4 +78,3 @@ class WithdrawalFactory extends Factory
         ]);
     }
 }
-

@@ -6,14 +6,17 @@ use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Wallet\app\Interfaces\ReserveFunds;
+use Modules\Wallet\enums\TransactionTypeEnum;
 use Modules\Wallet\enums\WithdrawalStatusEnum;
 use Modules\Wallet\Models\Wallet;
+use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\Withdrawal;
 
 final class InitiateWithdrawalAction
 {
     public function __construct(
         protected ReserveFunds $reserve,
+        protected ProcessWithdrawalAction $process,
     ) {}
 
     public function execute(array $payload): Withdrawal
@@ -31,8 +34,33 @@ final class InitiateWithdrawalAction
                 throw new CustomException('Wallet not found');
             }
 
-            $reference = 'WD-' . Str::uuid();
             $baseKey   = $payload['idempotency_key'];
+            $reference = 'WD-' . Str::uuid();
+            $reserveIdempotencyKey = $baseKey . ':reserve';
+
+            $existingReserve = WalletTransaction::query()
+                ->where('wallet_id', $wallet->id)
+                ->where('type', TransactionTypeEnum::RESERVE)
+                ->where('idempotency_key', $reserveIdempotencyKey)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingReserve) {
+                $withdrawal = Withdrawal::query()
+                    ->where('reference', $existingReserve->reference)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $withdrawal) {
+                    throw new CustomException('Reserved withdrawal record not found');
+                }
+
+                if ($withdrawal->status === WithdrawalStatusEnum::PENDING) {
+                    $withdrawal = $this->process->execute($withdrawal);
+                }
+
+                return $withdrawal->refresh()->load(['user', 'wallet']);
+            }
 
             /**
              * STEP 1: Reserve funds
@@ -43,7 +71,7 @@ final class InitiateWithdrawalAction
                 'currency'       => $wallet->currency,
                 'amount'         => $payload['amount'],
                 'reference'      => $reference,
-                'idempotencyKey' => $baseKey . ':reserve',
+                'idempotencyKey' => $reserveIdempotencyKey,
                 'meta' => [
                     'destination' => $payload['destination'],
                 ],
@@ -63,7 +91,8 @@ final class InitiateWithdrawalAction
                     'destination' => $payload['destination'],
                 ],
             ]);
-//            ProcessWithdrawalJob::dispatch($withdrawal);
+
+            $withdrawal = $this->process->execute($withdrawal);
 
             return $withdrawal->refresh()->load(['user', 'wallet']);
 

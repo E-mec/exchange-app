@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\actions;
 
+use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\DB;
 use Modules\Wallet\app\Interfaces\ReleaseReservedFunds;
 use Modules\Wallet\enums\WithdrawalStatusEnum;
@@ -19,15 +20,31 @@ final class FailWithdrawalAction
             return; // idempotent
         }
 
+        if ($withdrawal->status === WithdrawalStatusEnum::SUCCESS) {
+            throw new CustomException('Successful withdrawals cannot be failed');
+        }
+
         DB::transaction(function () use ($withdrawal, $reason) {
+            $lockedWithdrawal = Withdrawal::query()
+                ->whereKey($withdrawal->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedWithdrawal->status === WithdrawalStatusEnum::FAILED) {
+                return;
+            }
+
+            if ($lockedWithdrawal->status === WithdrawalStatusEnum::SUCCESS) {
+                throw new CustomException('Successful withdrawals cannot be failed');
+            }
 
             $this->release->execute([
-                'reference'       => $withdrawal->reference,
-                'idempotencyKey'  => $withdrawal->reference . ':release',
+                'reference'       => $lockedWithdrawal->reference,
+                'idempotencyKey'  => $lockedWithdrawal->reference . ':release',
                 'reason'          => $reason ?? 'withdrawal_failed',
             ]);
 
-            $withdrawal->update([
+            $lockedWithdrawal->update([
                 'status'          => WithdrawalStatusEnum::FAILED,
                 'failure_reason'  => $reason,
             ]);

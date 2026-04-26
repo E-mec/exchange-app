@@ -26,15 +26,9 @@ final class BalanceCalculatorAction
 
             TransactionTypeEnum::RESERVE => $this->reserve($available, $reserved, $amount, $scale),
 
-            TransactionTypeEnum::RESERVE_RELEASE => [
-                'available' => bcadd($available, $amount, $scale),
-                'reserved'  => bcsub($reserved, $amount, $scale),
-            ],
+            TransactionTypeEnum::RESERVE_RELEASE => $this->release($available, $reserved, $amount, $scale),
 
-            TransactionTypeEnum::DEBIT => [
-                'available' => $available,
-                'reserved'  => bcsub($reserved, $amount, $scale),
-            ],
+            TransactionTypeEnum::DEBIT => $this->debit($available, $reserved, $amount, $scale),
         };
     }
 
@@ -47,6 +41,30 @@ final class BalanceCalculatorAction
         return [
             'available' => bcsub($available, $amount, $scale),
             'reserved'  => bcadd($reserved, $amount, $scale),
+        ];
+    }
+
+    private function release(string $available, string $reserved, string $amount, int $scale): array
+    {
+        if (bccomp($reserved, $amount, $scale) < 0) {
+            throw new CustomException('Insufficient reserved balance to release.');
+        }
+
+        return [
+            'available' => bcadd($available, $amount, $scale),
+            'reserved'  => bcsub($reserved, $amount, $scale),
+        ];
+    }
+
+    private function debit(string $available, string $reserved, string $amount, int $scale): array
+    {
+        if (bccomp($reserved, $amount, $scale) < 0) {
+            throw new CustomException('Insufficient reserved balance to debit.');
+        }
+
+        return [
+            'available' => $available,
+            'reserved'  => bcsub($reserved, $amount, $scale),
         ];
     }
 }

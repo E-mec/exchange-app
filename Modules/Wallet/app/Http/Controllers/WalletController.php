@@ -11,6 +11,7 @@ use Modules\Wallet\actions\InitiateDepositAction;
 use Modules\Wallet\app\Http\Requests\InitiateDepositRequest;
 use Modules\Wallet\dto\DepositData;
 use Modules\Wallet\enums\CurrencyEnum;
+use Modules\Wallet\Models\WalletTransaction;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class WalletController extends Controller
@@ -44,6 +45,15 @@ class WalletController extends Controller
                 auth('api')->id(),
                 $currencyEnum
             ));
+    }
+
+    public function transactions(): JsonResponse
+    {
+        $transactions = WalletTransaction::where('user_id', auth()->id())
+            ->latest()
+            ->paginate(20);
+
+        return successResponse('transactions', $transactions);
     }
 
 

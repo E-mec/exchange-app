@@ -2,21 +2,26 @@
 
 namespace Modules\Wallet\app\Listeners;
 
+use Modules\Wallet\actions\FailWithdrawalAction;
 use Modules\Wallet\app\Events\WithdrawalFailed;
-use Modules\Wallet\actions\ReleaseReservedFundsAction;
+use Modules\Wallet\Models\Withdrawal;
 
 final class ReleaseWithdrawalFundsListener
 {
     public function __construct(
-        protected ReleaseReservedFundsAction $release
+        protected FailWithdrawalAction $failWithdrawal
     ) {}
 
     public function handle(WithdrawalFailed $event): void
     {
-        $this->release->execute([
-            'reference'       => $event->reference,
-            'idempotencyKey'  => $event->reference . ':release',
-            'reason'          => $event->reason ?? 'withdrawal_failed',
-        ]);
+        $withdrawal = Withdrawal::query()
+            ->where('reference', $event->reference)
+            ->first();
+
+        if (! $withdrawal) {
+            return;
+        }
+
+        $this->failWithdrawal->execute($withdrawal, $event->reason);
     }
 }

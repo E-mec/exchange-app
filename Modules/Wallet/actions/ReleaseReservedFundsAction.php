@@ -18,8 +18,17 @@ final class ReleaseReservedFundsAction implements ReleaseReservedFunds
      */
     public function execute(array $data): WalletTransaction
     {
+        $existingByKey = WalletTransaction::query()
+            ->where('idempotency_key', $data['idempotencyKey'])
+            ->first();
+
+        if ($existingByKey) {
+            return $existingByKey;
+        }
+
         // 1. Find reserve transaction
-        $reserveTxn = WalletTransaction::where('reference', $data['reference'])
+        $reserveTxn = WalletTransaction::query()
+            ->where('reference', $data['reference'])
             ->where('type', TransactionTypeEnum::RESERVE)
             ->lockForUpdate()
             ->first();
@@ -30,7 +39,17 @@ final class ReleaseReservedFundsAction implements ReleaseReservedFunds
 
         // 2. Prevent double release
         if ($reserveTxn->is_finalized) {
-            throw new CustomException('Reserve already finalized.');
+            $existingRelease = WalletTransaction::query()
+                ->where('wallet_id', $reserveTxn->wallet_id)
+                ->where('reference', $reserveTxn->reference)
+                ->where('type', TransactionTypeEnum::RESERVE_RELEASE)
+                ->first();
+
+            if ($existingRelease) {
+                return $existingRelease;
+            }
+
+            throw new CustomException('Reserve already settled for non-release flow.');
         }
 
         // 3. Release via orchestrator
@@ -50,6 +69,7 @@ final class ReleaseReservedFundsAction implements ReleaseReservedFunds
         // 4. Mark reserve as finalized
         $reserveTxn->update([
             'is_finalized' => true,
+            'finalized_at' => now(),
         ]);
 
         return $releaseTxn;
