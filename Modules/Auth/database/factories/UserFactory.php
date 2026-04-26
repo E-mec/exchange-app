@@ -35,6 +35,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'phone_number' => fake()->phoneNumber(),
             'country' => fake()->country(),
+            'username' => fake()->firstName,
             'dial_code' => '+234',
         ];
     }

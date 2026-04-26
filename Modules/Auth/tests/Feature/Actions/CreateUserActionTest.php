@@ -10,7 +10,6 @@ use Modules\Auth\Tests\TestCase;
 
 uses(TestCase::class);
 
-
 test('can create user', function () {
 
     Notification::fake();

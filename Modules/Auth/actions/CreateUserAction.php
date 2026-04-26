@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Auth\app\Events\UserRegisteredEvent;
 use Modules\Auth\dtos\RequestDto\RegisterUserData;
+use Modules\Auth\enums\KycStatusEnum;
 use Modules\Auth\enums\UserStatusEnum;
 use Modules\Auth\Models\User;
 
@@ -33,7 +34,8 @@ class CreateUserAction
                 'pin' => $data->pin,
                 'referral_code' => Str::random(8),
                 'referred_by' => $data->referred_by,
-                'status' => UserStatusEnum::Suspended
+                'status' => UserStatusEnum::Suspended,
+                'kyc_status' => KYCStatusEnum::Pending,
             ]);
 
             if(isset($data->profile_picture)){

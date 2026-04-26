@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject,HasMedia
         'uuid',
         'firstname',
         'lastname',
+        'username',
         'email',
         'phone_number',
         'dial_code',
