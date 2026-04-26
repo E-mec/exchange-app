@@ -38,11 +38,10 @@ class ReconcileWithdrawalsJob implements ShouldQueue
     }
 
     /**
-     * @throws CustomException
      */
-    private function reconcileFailed(Withdrawal $withdrawal): void
+    private function reconcileFailed(Withdrawal $withdrawal, ReleaseReservedFunds $release): void
     {
-        app(ReleaseReservedFunds::class)->execute([
+        $release->execute([  // ← use the injected instance
             'reference' => $withdrawal->reference,
             'idempotencyKey' => 'reconcile:' . $withdrawal->reference,
             'reason' => 'reconciliation_release',

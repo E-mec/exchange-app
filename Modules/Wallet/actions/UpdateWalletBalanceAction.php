@@ -11,7 +11,11 @@ final class UpdateWalletBalanceAction
      */
     public function execute(Wallet $wallet, string $available, string $reserved = null, string $ledger = null): Wallet
     {
-        $payload = ['available_balance' => $available];
+        $payload = [
+            'available_balance' => $available,
+            'ledger_balance'    => $available, // snapshot available as ledger for now
+        ];
+
         if ($reserved !== null) $payload['reserved_balance'] = $reserved;
         if ($ledger !== null) $payload['ledger_balance'] = $ledger;
 

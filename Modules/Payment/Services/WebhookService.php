@@ -2,6 +2,7 @@
 
 namespace Modules\Payment\Services;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\app\Events\PaymentFailed;
 use Modules\Payment\app\Events\PaymentSuccessful;
 use Modules\Payment\Enums\PaymentStatusEnum;
@@ -15,7 +16,7 @@ class WebhookService
         //  Resolve payment by provider payload
         $payment = $this->resolvePayment($provider, $payload);
 
-        if (! $payment) {
+        if (!$payment) {
             return response()->json(['ignored' => true], 200);
         }
 
@@ -27,24 +28,28 @@ class WebhookService
         // Determine final status
         $status = $this->resolveStatus($provider, $payload);
 
-        // Update atomically
-        $payment->update([
-            'status' => $status,
-            'meta'   => array_merge($payment->meta ?? [], [
-                'webhook' => $payload,
-            ]),
-        ]);
+        DB::transaction(function () use ($payment, $status, $payload) {
+            // Update atomically
+            $payment->update([
+                'status' => $status,
+                'meta' => array_merge($payment->meta ?? [], [
+                    'webhook' => $payload,
+                ]),
+            ]);
 
-        match ($status) {
-            PaymentStatusEnum::SUCCESSFUL->value =>
-            event(new PaymentSuccessful($payment)),
 
-            PaymentStatusEnum::FAILED->value =>
-            event(new PaymentFailed($payment)),
+            match ($status) {
+                PaymentStatusEnum::SUCCESSFUL->value =>
+                event(new PaymentSuccessful($payment)),
 
-            default => null,
-        };
+                PaymentStatusEnum::FAILED->value =>
+                event(new PaymentFailed($payment)),
+
+                default => null,
+            };
+        });
     }
+
     protected function resolvePayment(string $provider, array $payload): ?Payment
     {
         return match ($provider) {

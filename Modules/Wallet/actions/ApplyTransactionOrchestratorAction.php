@@ -2,9 +2,11 @@
 
 namespace Modules\Wallet\actions;
 
+use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Wallet\enums\TransactionTypeEnum;
+use Modules\Wallet\enums\WalletStatusEnum;
 use Modules\Wallet\Models\WalletTransaction;
 
 final class ApplyTransactionOrchestratorAction
@@ -26,6 +28,10 @@ final class ApplyTransactionOrchestratorAction
 
             // lock wallet
             $wallet = $this->walletLock->execute($payload['walletId']);
+
+            if ($wallet->status !== WalletStatusEnum::ACTIVE) {
+                throw new CustomException('Wallet is not active.');
+            }
 
             // idempotency check
             $existing = $this->idempotencyChecker->execute($payload['idempotencyKey']);

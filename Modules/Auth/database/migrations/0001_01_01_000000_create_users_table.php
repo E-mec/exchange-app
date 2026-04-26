@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('password');
 
             $table->string('phone_number')->unique();
+            $table->string('username')->unique();
             $table->string('dial_code')->nullable();
             $table->string('country')->nullable();
 

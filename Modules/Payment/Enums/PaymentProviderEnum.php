@@ -9,6 +9,6 @@ enum PaymentProviderEnum: string
     case PAYPAL = 'paypal';
     case FLUTTERWAVE = 'flutterwave';
     case COINBASE = 'coinbase';
-    case BINANCE = 'binance';
+//    case BINANCE = 'binance';
 }
 

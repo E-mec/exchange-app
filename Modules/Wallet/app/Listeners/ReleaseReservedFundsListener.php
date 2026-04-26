@@ -18,10 +18,10 @@ final class ReleaseReservedFundsListener
      */
     public function handle($event): void {
         app(ReleaseReservedFundsAction::class)->execute([
-            'walletId'       => $event->walletId,
-            'userId'         => $event->userId,
-            'reference'      => $event->reserveReference, // original reserve txn
-            'idempotencyKey' => $event->idempotencyKey,
+//            'walletId'       => $event->payment->walletId,
+//            'userId'         => $event->payment->userId,
+            'reference'      => $event->payment->reserveReference, // original reserve txn
+            'idempotencyKey' => $event->payment->idempotencyKey,
             'reason'         => 'payment_failed',
         ]);
     }

@@ -17,7 +17,7 @@ class ResendOtpController extends Controller
     public function __invoke(Request $request)
     {
             return DB::transaction(function () use ($request) {
-                $user = User::where('email', $request->email)->first();
+                $user = User::where('email', $request->input('email'))->first();
 
                 if(!$user){
                     throw ValidationException::withMessages([
@@ -25,7 +25,7 @@ class ResendOtpController extends Controller
                     ]);
                 }
 
-                app(SendOtpAction::class)->execute($user);
+                app(SendOtpAction::class)->execute($user, $request->input('otp_type'));
 
                 return successResponse('OTP has been sent to your email');
             });

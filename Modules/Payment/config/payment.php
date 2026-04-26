@@ -47,10 +47,10 @@ return [
             'webhook_secret' => env('COINBASE_WEBHOOK_SECRET'),
         ],
 
-        PaymentProviderEnum::BINANCE->value => [
-            'api_key' => env('BINANCE_API_KEY'),
-            'secret' => env('BINANCE_SECRET_KEY'),
-            'webhook_secret' => env('BINANCE_WEBHOOK_SECRET'),
-        ],
+//        PaymentProviderEnum::BINANCE->value => [
+//            'api_key' => env('BINANCE_API_KEY'),
+//            'secret' => env('BINANCE_SECRET_KEY'),
+//            'webhook_secret' => env('BINANCE_WEBHOOK_SECRET'),
+//        ],
     ],
 ];

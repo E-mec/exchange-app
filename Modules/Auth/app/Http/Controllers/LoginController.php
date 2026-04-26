@@ -22,6 +22,8 @@ class LoginController extends Controller
         return DB::transaction(function () use ($request, $action) {
             $user = $action->handle($request->email, $request->password);
             $token = JWTAuth::fromUser($user);
+            $user->last_login_at = now();
+            $user->save();
 
             $data = [
               'token' => $token,

@@ -16,7 +16,7 @@ class WithdrawalController extends Controller
      */
     public function store(WithdrawalRequest $request, InitiateWithdrawalAction $action): JsonResponse
     {
-        $withdrawal = $action->execute($request->all());
+        $withdrawal = $action->execute($request->validated());
 
         return successResponse('Withdrawal successfully initiated', $withdrawal);
 

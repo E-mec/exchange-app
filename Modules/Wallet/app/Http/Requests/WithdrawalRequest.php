@@ -3,6 +3,8 @@
 namespace Modules\Wallet\app\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\Wallet\enums\CurrencyEnum;
 
 class WithdrawalRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class WithdrawalRequest extends FormRequest
     {
         return [
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'currency' => ['required', 'string'],
+            'currency' => ['required', 'string', Rule::enum(CurrencyEnum::class)],
             'destination' => ['required', 'array'],
             'idempotency_key' => ['required', 'uuid'],
         ];

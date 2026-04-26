@@ -13,5 +13,8 @@ Route::middleware('auth:api')->prefix('user')->group(function () {
 
     Route::post('/withdrawals', [WithdrawalController::class, 'store']);
 
+    Route::get('/transactions', [WalletController::class, 'transactions']);
+    Route::get('/withdrawals', [WithdrawalController::class, 'index']);
+
 
 });

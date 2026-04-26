@@ -17,7 +17,7 @@ class TransferRequest extends FormRequest
             "from_currency" => ["required", Rule::enum(CurrencyEnum::class)],
             "to_currency" => ["required", Rule::enum(CurrencyEnum::class)],
             "amount" => ["required", "numeric"],
-            "to_user_id" => ["required", Rule::exists("users", "id")],
+            "to_user_id" => ["required", Rule::exists("users", "id"), Rule::notIn([auth()->id()])],
             "idempotency_key" => ["required", "uuid"],
         ];
     }

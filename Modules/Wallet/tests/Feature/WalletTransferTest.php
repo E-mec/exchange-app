@@ -119,6 +119,12 @@ test('is idempotent', function () {
     expect(
         WalletTransaction::where('idempotency_key', $key)->count()
     )->toBe(0);
+
+    // AFTER — actually checks the transfer ran exactly once
+    expect((float) $senderWallet->refresh()->available_balance)->toEqual(7000.0);
+    expect((float) $receiverWallet->refresh()->available_balance)->toEqual(3000.0);
+// Confirm exactly 3 transactions were created (reserve + credit + debit), not 6
+    expect(WalletTransaction::count())->toBe(3);
 });
 
 test('does not double debit on retry', function () {

@@ -4,6 +4,7 @@ namespace Modules\Payment\app\Listeners;
 
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Modules\Auth\Models\User;
 use Modules\Payment\actions\InitializePayment;
 use Modules\Wallet\app\Events\DepositInitiatedEvent;
 
@@ -27,7 +28,7 @@ class InitializePaymentListener
             'amount'    => $event->amount,
             'currency'  => $event->currency,
             'provider'  => $event->provider,
-            'email'     => optional(auth()->user())->email, // or fetch via user repo
+            'email'     => User::find($event->userId)?->email, // or fetch via user repo
             'meta'      => [
                 'source' => 'wallet_deposit',
             ],

@@ -23,7 +23,7 @@ class EventServiceProvider extends ServiceProvider
         /** ✅ PAYMENT SUCCESS */
         PaymentSuccessful::class => [
             CreditWalletOnConfirmedPayment::class,
-            FinalizeDebitListener::class,
+//            FinalizeDebitListener::class,
         ],
 
         /** ❌ PAYMENT FAILED */
