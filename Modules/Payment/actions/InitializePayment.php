@@ -28,6 +28,7 @@ class InitializePayment
 
         if (
             $existingPayment &&
+
             $existingPayment->status === PaymentStatusEnum::PENDING &&
             ($existingPayment->meta['checkout_url'] ?? null)
         ) {
