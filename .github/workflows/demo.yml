@@ -21,8 +21,7 @@ jobs:
             set -e
             cd /home/exchange-app
             php artisan down || true
-            git fetch --all
-            git reset --hard origin/dev
+            git pull origin dev
             composer install --no-dev --optimize-autoloader
             php artisan config:cache
             php artisan route:cache
