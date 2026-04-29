@@ -1,14 +1,11 @@
 name: Deploy to AlwaysData (SSH)
-
 on:
   push:
     branches:
       - dev
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,21 +13,19 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ secrets.SSH_HOST }}      # ssh-{account}.alwaysdata.net
+          username: ${{ secrets.SSH_USER }}   # your alwaysdata account name
           password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
           script: |
-            cd /home/exchange-app
-
+            set -e
+            cd /home/${{ secrets.SSH_USER }}/exchange-app
             php artisan down || true
-
             git fetch --all
             git reset --hard origin/dev
-
             composer install --no-dev --optimize-autoloader
-
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-
+            php artisan migrate --force
             php artisan up
