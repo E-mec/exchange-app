@@ -9,7 +9,9 @@ use Modules\Payment\app\Events\PaymentSuccessful;
 use Modules\Payment\app\Listeners\InitializePaymentListener;
 use Modules\Wallet\app\Events\DepositInitiatedEvent;
 use Modules\Wallet\app\Listeners\CreditWalletOnConfirmedPayment;
+use Modules\Wallet\app\Listeners\FailWithdrawalOnPayoutFailedListener;
 use Modules\Wallet\app\Listeners\FinalizeDebitListener;
+use Modules\Wallet\app\Listeners\FinalizeWithdrawalOnPayoutSuccessListener;
 use Modules\Wallet\app\Listeners\ReleaseReservedFundsListener;
 use Modules\Wallet\app\Listeners\SyncDepositIntentFailedListener;
 use Modules\Wallet\app\Listeners\SyncDepositIntentInitializedListener;
@@ -31,11 +33,14 @@ class EventServiceProvider extends ServiceProvider
             SyncDepositIntentSuccessfulListener::class,
             CreditWalletOnConfirmedPayment::class,
 //            FinalizeDebitListener::class,
+            FinalizeWithdrawalOnPayoutSuccessListener::class,
         ],
 
         PaymentFailed::class => [
             SyncDepositIntentFailedListener::class,
             ReleaseReservedFundsListener::class,
+            FailWithdrawalOnPayoutFailedListener::class, // ← add this
+
         ],
 
         DepositInitiatedEvent::class => [

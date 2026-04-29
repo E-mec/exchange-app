@@ -16,10 +16,10 @@ class DepositController extends Controller
     public function __invoke(InitiateDepositRequest $request, InitiateDepositAction $action): JsonResponse
     {
         $data = $action->handle(
-            $request->amount,
-            $request->currency,
-            $request->deposit_channel,
-            $request->idempotency_key,
+            $request->input('amount'),
+            $request->input('currency'),
+            $request->input('deposit_channel'),
+            $request->input('idempotency_key'),
         );
 
         return successResponse('deposit initiated', DepositData::from($data));

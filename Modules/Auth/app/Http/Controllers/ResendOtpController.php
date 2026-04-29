@@ -3,6 +3,7 @@
 namespace Modules\Auth\app\Http\Controllers;
 
 use App\Actions\SendOtpAction;
+use App\Enums\OtpTypeEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,9 @@ class ResendOtpController extends Controller
                     ]);
                 }
 
-                app(SendOtpAction::class)->execute($user, $request->input('otp_type'));
+                $otpType = OtpTypeEnum::tryFrom($request->input('otp_type'));
+
+                app(SendOtpAction::class)->execute($user, $otpType);
 
                 return successResponse('OTP has been sent to your email');
             });

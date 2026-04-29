@@ -16,11 +16,52 @@ class ReconcileWithdrawalsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+//    public function handle(ReleaseReservedFunds $release): void
+//    {
+//        Withdrawal::query()
+//            ->where('status', WithdrawalStatusEnum::FAILED)
+//            ->where('is_reconciled', false)
+//            ->chunkById(100, function ($withdrawals) use ($release) {
+//                foreach ($withdrawals as $withdrawal) {
+//                    $this->reconcileFailed($withdrawal, $release);
+//                }
+//            });
+//    }
+//
+//    private function reconcileFailed(Withdrawal $withdrawal, ReleaseReservedFunds $release): void
+//    {
+//        try {
+//            $release->execute([
+//                'reference' => $withdrawal->reference,
+//                'idempotencyKey' => 'reconcile:' . $withdrawal->reference,
+//                'reason' => 'reconciliation_release',
+//            ]);
+//        } catch (CustomException $exception) {
+//            report($exception);
+//
+//            return;
+//        }
+//
+//        $withdrawal->update([
+//            'is_reconciled' => true,
+//            'reconciled_at' => now(),
+//        ]);
+//    }
+
     public function handle(ReleaseReservedFunds $release): void
     {
         Withdrawal::query()
-            ->where('status', WithdrawalStatusEnum::FAILED)
             ->where('is_reconciled', false)
+            ->where(function ($query) {
+                // Case 1: Already marked FAILED but funds not released yet
+                $query->where('status', WithdrawalStatusEnum::FAILED)
+
+                    // Case 2: Stuck PROCESSING for over 24 hours (webhook never arrived)
+                    ->orWhere(function ($q) {
+                        $q->where('status', WithdrawalStatusEnum::PROCESSING)
+                            ->where('updated_at', '<', now()->subHours(24));
+                    });
+            })
             ->chunkById(100, function ($withdrawals) use ($release) {
                 foreach ($withdrawals as $withdrawal) {
                     $this->reconcileFailed($withdrawal, $release);
@@ -32,19 +73,20 @@ class ReconcileWithdrawalsJob implements ShouldQueue
     {
         try {
             $release->execute([
-                'reference' => $withdrawal->reference,
+                'reference'      => $withdrawal->reference,
                 'idempotencyKey' => 'reconcile:' . $withdrawal->reference,
-                'reason' => 'reconciliation_release',
+                'reason'         => 'reconciliation_release',
             ]);
         } catch (CustomException $exception) {
             report($exception);
-
-            return;
+            return; // already released — safe to continue
         }
 
         $withdrawal->update([
-            'is_reconciled' => true,
-            'reconciled_at' => now(),
+            'status'         => WithdrawalStatusEnum::FAILED, // mark PROCESSING → FAILED
+            'is_reconciled'  => true,
+            'reconciled_at'  => now(),
+            'failure_reason' => 'reconciled_after_timeout',
         ]);
     }
 }

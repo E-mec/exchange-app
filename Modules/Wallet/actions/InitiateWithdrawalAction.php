@@ -22,25 +22,23 @@ final class InitiateWithdrawalAction
     /**
      * @throws CustomException
      */
+
     public function execute(array $payload): Withdrawal
     {
-        return DB::transaction(/**
-         * @throws CustomException
-         */ function () use ($payload) {
+        // Phase 1: DB work only — reserve + create withdrawal
+        $withdrawal = DB::transaction(function () use ($payload) {
 
-            $wallet = Wallet::forUser(
-                auth()->id(),
-                $payload['currency']
-            );
+            $wallet = Wallet::forUser(auth()->id(), $payload['currency']);
 
             if (! $wallet) {
                 throw new CustomException('Wallet not found');
             }
 
-            $baseKey   = $payload['idempotency_key'];
-            $reference = 'WD-' . Str::uuid();
+            $baseKey               = $payload['idempotency_key'];
+            $reference             = 'WD-' . Str::uuid();
             $reserveIdempotencyKey = $baseKey . ':reserve';
 
+            // Idempotency check
             $existingReserve = WalletTransaction::query()
                 ->where('wallet_id', $wallet->id)
                 ->where('type', TransactionTypeEnum::RESERVE)
@@ -49,25 +47,16 @@ final class InitiateWithdrawalAction
                 ->first();
 
             if ($existingReserve) {
+                // Already reserved — return the existing withdrawal
                 $withdrawal = Withdrawal::query()
                     ->where('reference', $existingReserve->reference)
                     ->lockForUpdate()
-                    ->first();
+                    ->firstOrFail();
 
-                if (! $withdrawal) {
-                    throw new CustomException('Reserved withdrawal record not found');
-                }
-
-                if ($withdrawal->status === WithdrawalStatusEnum::PENDING) {
-                    $withdrawal = $this->process->execute($withdrawal);
-                }
-
-                return $withdrawal->refresh()->load(['user', 'wallet']);
+                return $withdrawal; // status may be PENDING or PROCESSING
             }
 
-            /**
-             * STEP 1: Reserve funds
-             */
+            // Reserve funds
             $this->reserve->execute([
                 'walletId'       => $wallet->id,
                 'userId'         => auth()->id(),
@@ -75,32 +64,28 @@ final class InitiateWithdrawalAction
                 'amount'         => $payload['amount'],
                 'reference'      => $reference,
                 'idempotencyKey' => $reserveIdempotencyKey,
-                'meta' => [
-                    'destination' => $payload['destination'],
-                ],
+                'meta'           => ['destination' => $payload['destination']],
             ]);
 
-            /**
-             * STEP 2: Create withdrawal record
-             */
-            $withdrawal = Withdrawal::create([
+            // Create withdrawal record — stays PENDING until job runs
+            return Withdrawal::create([
                 'wallet_id' => $wallet->id,
                 'user_id'   => auth()->id(),
                 'amount'    => $payload['amount'],
                 'currency'  => $wallet->currency,
                 'reference' => $reference,
                 'status'    => WithdrawalStatusEnum::PENDING,
-                'meta' => [
-                    'destination' => $payload['destination'],
-                ],
+                'meta'      => ['destination' => $payload['destination']],
             ]);
 
+        }); // ← Transaction COMMITS here. Row exists in DB.
+
+        // Phase 2: If still pending, mark PROCESSING and dispatch job
+        // Safe to call now — transaction is committed, row is visible
+        if ($withdrawal->status === WithdrawalStatusEnum::PENDING) {
             $withdrawal = $this->process->execute($withdrawal);
+        }
 
-            return $withdrawal->refresh()->load(['user', 'wallet']);
-
-        });
-
-
+        return $withdrawal->refresh()->load(['user', 'wallet']);
     }
 }

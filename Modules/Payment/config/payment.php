@@ -28,11 +28,15 @@ return [
             'secret' => env('FLUTTERWAVE_SECRET_KEY'),
             'public' => env('FLUTTERWAVE_PUBLIC_KEY'),
             'webhook_secret' => env('FLUTTERWAVE_WEBHOOK_SECRET'),
+            'redirect_url' => env('APP_URL').'/api/payments/verify/flutterwave',
+
         ],
 
         PaymentProviderEnum::STRIPE->value => [
             'secret' => env('STRIPE_SECRET_KEY'),
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+            'success_url' => env('APP_URL').'/api/payments/verify/stripe',
+            'failure_url' => env('APP_URL').'/api/payments/verify/stripe',
         ],
 
         PaymentProviderEnum::PAYPAL->value => [

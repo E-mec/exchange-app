@@ -4,6 +4,7 @@ namespace Modules\Wallet\app\Listeners;
 
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Modules\Payment\Enums\PaymentTypeEnum;
 use Modules\Wallet\actions\CreditWalletAction;
 use Modules\Wallet\Models\Wallet;
 
@@ -22,6 +23,12 @@ final class CreditWalletOnConfirmedPayment
     public function handle($event): void
     {
         $payment = $event->payment;
+
+        // Only credit wallet for inbound deposit payments
+        // Payout confirmations should NOT trigger a wallet credit
+        if ($payment->type !== PaymentTypeEnum::DEPOSIT) {
+            return;
+        }
 
         $wallet  = Wallet::where('user_id', $payment->user_id)
             ->where('currency', $payment->currency)

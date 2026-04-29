@@ -24,11 +24,18 @@ class FlutterwaveGateway implements PaymentGatewayInterface
                 'tx_ref'   => $data['reference'],
                 'amount'   => $data['amount'],
                 'currency' => $data['currency'],
+                'redirect_url' => config('payment.providers.flutterwave.redirect_url')
+                    . '?reference=' . $data['reference']
+                    . '&gateway=flutterwave',   // same pattern as Stripe
                 'customer' => [
                     'email' => $data['email'],
                 ],
                 'meta' => $data['meta'] ?? [],
             ]);
+
+        logger('response', [
+            'result' => $res->json(),
+        ]);
 
         if (! $res->successful()) {
             throw new RuntimeException('Flutterwave init failed');
@@ -46,7 +53,11 @@ class FlutterwaveGateway implements PaymentGatewayInterface
     public function verify(string $reference): array
     {
         $res = Http::withToken($this->secret)
-            ->get("https://api.flutterwave.com/v3/transactions/{$reference}/verify");
+            ->get("https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref={$reference}");
+
+        logger('verify response', [
+            'result' => $res->json(),
+        ]);
 
         if (! $res->successful()) {
             throw new RuntimeException('Flutterwave verify failed');
