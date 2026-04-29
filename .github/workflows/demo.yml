@@ -1,4 +1,4 @@
-name: Deploy to AlwaysData (FTP)
+name: Deploy to AlwaysData (SSH)
 
 on:
   push:
@@ -13,23 +13,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          server: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          server-dir: /home/exchange-app/
-          protocol: ftps
-          security: strict
-          passive: true
-          timeout: 120000
-          max-retries: 5
-          log-level: verbose
-          exclude: |
-            **/.git/**
-            **/node_modules/**
-            **/storage/**
-            **/tests/**
-            **/vendor/**
-          dangerous-clean-slate: false
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /home/exchange-app
+
+            php artisan down || true
+
+            git fetch --all
+            git reset --hard origin/dev
+
+            composer install --no-dev --optimize-autoloader
+
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            php artisan up
