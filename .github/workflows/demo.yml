@@ -1,4 +1,4 @@
-name: Deploy to AlwaysData
+name: Deploy to AlwaysData (FTP)
 
 on:
   push:
@@ -10,24 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: ${{ secrets.HOST }}
+          server: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          script: |
-            cd /home/exchange-app/
-
-             php artisan down || true
-
-            git fetch --all
-            git reset --hard origin/dev
-
-            composer install --no-dev --optimize-autoloader
-
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-
-            php artisan up
+          server-dir: /home/exchange-app/
