@@ -17,14 +17,17 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd /home/your-user/your-project
+            cd /home/exchange-app/
 
-            git pull origin main
+             php artisan down || true
+
+            git fetch --all
+            git reset --hard origin/dev
 
             composer install --no-dev --optimize-autoloader
-
-            php artisan migrate --force
 
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            php artisan up
