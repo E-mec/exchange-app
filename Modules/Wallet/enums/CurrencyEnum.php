@@ -8,4 +8,9 @@ enum CurrencyEnum: string
     case USD = 'USD';
     case EUR = 'EUR';
     case BTC = 'BTC';
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 }

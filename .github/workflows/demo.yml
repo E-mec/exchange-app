@@ -21,4 +21,5 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           server-dir: /home/exchange-app/
           protocol: ftps
-          security: loose
+          security: strict
+          passive: true
