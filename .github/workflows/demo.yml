@@ -23,5 +23,13 @@ jobs:
           protocol: ftps
           security: strict
           passive: true
-          timeout: 60000
+          timeout: 120000
+          max-retries: 5
           log-level: verbose
+          exclude: |
+            **/.git/**
+            **/node_modules/**
+            **/storage/**
+            **/tests/**
+            **/vendor/**
+          dangerous-clean-slate: false
