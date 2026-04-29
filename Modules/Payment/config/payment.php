@@ -56,5 +56,11 @@ return [
 //            'secret' => env('BINANCE_SECRET_KEY'),
 //            'webhook_secret' => env('BINANCE_WEBHOOK_SECRET'),
 //        ],
+
+        'payout_provider' => [
+            'ngn' => PaymentProviderEnum::PAYSTACK->value,
+            'usd' => PaymentProviderEnum::STRIPE->value,
+            'eur' => PaymentProviderEnum::FLUTTERWAVE->value,
+        ],
     ],
 ];

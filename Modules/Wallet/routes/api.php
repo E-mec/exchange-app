@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Wallet\app\Http\Controllers\DepositController;
+use Modules\Wallet\app\Http\Controllers\FetchCurrencyController;
 use Modules\Wallet\app\Http\Controllers\WalletController;
 use Modules\Wallet\app\Http\Controllers\WalletTransferController;
 use Modules\Wallet\app\Http\Controllers\WithdrawalController;
@@ -16,5 +17,6 @@ Route::middleware('auth:api')->prefix('user')->group(function () {
     Route::get('/transactions', [WalletController::class, 'transactions']);
     Route::get('/withdrawals', [WithdrawalController::class, 'index']);
 
-
 });
+
+Route::get('currencies', FetchCurrencyController::class);

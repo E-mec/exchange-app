@@ -23,3 +23,5 @@ jobs:
           protocol: ftps
           security: strict
           passive: true
+          timeout: 60000
+          log-level: verbose
