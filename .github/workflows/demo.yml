@@ -23,6 +23,7 @@ jobs:
           target: ${{ secrets.SSH_TARGET_DIR }}
           rm: false
           overwrite: true
+          strip_components: 1
 
       - name: Execute remote commands
         uses: appleboy/ssh-action@v1
