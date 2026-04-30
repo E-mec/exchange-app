@@ -25,10 +25,5 @@ class VerifyPasswordOtpAction
         app(VerifyOtpAction::class)->execute($user, $otp, OtpTypeEnum::PASSWORD);
 
 
-
-
-
-
-
     }
 }

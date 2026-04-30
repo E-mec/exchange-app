@@ -10,7 +10,7 @@ use Modules\Auth\app\Notifications\OtpNotification;
 class SendOtpAction
 {
     protected int $otpLength = 6;
-    protected int $ttlMinutes = 2;
+    protected int $ttlMinutes = 5;
 
     public function execute(User $user,OtpTypeEnum $key ): void
     {

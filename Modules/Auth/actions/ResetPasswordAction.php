@@ -8,7 +8,7 @@ use Modules\Auth\Models\User;
 
 class ResetPasswordAction
 {
-    public function execute(string $email, string $password)
+    public function execute(string $email, string $password): void
     {
         $user = User::where('email', $email)->first();
 

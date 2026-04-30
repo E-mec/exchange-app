@@ -126,9 +126,13 @@ class ProcessWithdrawalJob implements ShouldQueue
         if ($withdrawal->provider_reference) {
             return;
         }
+        logger('currency', [
+            'currency' => $withdrawal->currency,
+            'or' => $withdrawal->currency
+        ]);
 
         $provider = config(
-            'payment.payout_provider.' . strtolower($withdrawal->currency->value ?? $withdrawal->currency),
+            'payment.providers.payout_provider.' . strtolower($withdrawal->currency->value ?? $withdrawal->currency),
             config('payment.default_payout_provider', 'paystack')
         );
 
