@@ -14,16 +14,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy repository contents via scp
-        uses: appleboy/scp-action@v0.1.9
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "."
+          source: ".,!.git"
           target: ${{ secrets.SSH_TARGET_DIR }}
           rm: false
           overwrite: true
-          exclude: ".git"
 
       - name: Execute remote commands
         uses: appleboy/ssh-action@v1
