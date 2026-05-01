@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\actions;
 
+use App\Actions\VerifyPin;
 use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -25,6 +26,7 @@ final class InitiateWithdrawalAction
 
     public function execute(array $payload): Withdrawal
     {
+        app(VerifyPin::class)->execute($payload['pin']);
         // Phase 1: DB work only — reserve + create withdrawal
         $withdrawal = DB::transaction(function () use ($payload) {
 

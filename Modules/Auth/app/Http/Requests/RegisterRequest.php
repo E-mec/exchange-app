@@ -33,7 +33,7 @@ class RegisterRequest extends FormRequest
             ],
             'dial_code' => ['required', 'string', 'max:10'],
             'country' => ['required', 'string', 'max:100'],
-            'pin' => ['nullable', 'digits:6', 'numeric'],
+            'pin' => ['nullable', 'digits:6', 'confirmed'],
             'referred_by' => ['nullable', Rule::exists('users', 'id')],
             'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ];

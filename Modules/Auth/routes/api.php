@@ -35,4 +35,6 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::patch('/update/profile', [ProfileController::class, 'update']);
 
+    Route::put('/set/pin', [ProfileController::class, 'setPin']);
+
 });

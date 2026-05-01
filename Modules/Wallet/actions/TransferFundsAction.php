@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\actions;
 
+use App\Actions\VerifyPin;
 use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,6 +18,8 @@ final class TransferFundsAction
 
     public function execute(array $payload): array
     {
+        app(VerifyPin::class)->execute($payload['pin']);
+
         return DB::transaction(function () use ($payload) {
 
             $fromWallet = Wallet::forUser(

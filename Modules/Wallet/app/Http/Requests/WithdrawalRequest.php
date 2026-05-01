@@ -24,6 +24,7 @@ class WithdrawalRequest extends FormRequest
             'destination.provider' => ['required_if:destination.type,mobile_money', 'string'],
             'destination.wallet_address' => ['required_if:destination.type,wallet', 'string'],
             'idempotency_key' => ['required', 'uuid'],
+            'pin' => ['required', 'digits:6'],
         ];
     }
 

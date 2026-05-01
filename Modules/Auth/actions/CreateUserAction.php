@@ -31,7 +31,7 @@ class CreateUserAction
                 'phone_number' => $data->phone_number,
                 'dial_code' => $data->dial_code,
                 'country' => $data->country,
-                'pin' => $data->pin,
+                'pin' =>  Hash::make($data->pin),
                 'referral_code' => Str::random(8),
                 'referred_by' => $data->referred_by,
                 'status' => UserStatusEnum::Suspended,

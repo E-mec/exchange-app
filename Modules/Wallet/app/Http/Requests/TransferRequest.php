@@ -19,6 +19,8 @@ class TransferRequest extends FormRequest
             "amount" => ["required", "numeric"],
             "to_user_id" => ["required", Rule::exists("users", "id"), Rule::notIn([auth()->id()])],
             "idempotency_key" => ["required", "uuid"],
+            'pin' => ['required', 'digits:6'],
+
         ];
     }
 

@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Modules\Auth\Http\Requests\ResendOtpRequest;
+use Modules\Auth\app\Http\Requests\ResendOtpRequest;
 use Modules\Auth\Models\User;
 
 class ResendOtpController extends Controller
