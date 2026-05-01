@@ -39,7 +39,7 @@ class CreateUserAction
             ]);
 
             if(isset($data->profile_picture)){
-                $user->addMediaFromRequest('profile_picture')->toMediaCollection('profile_pictures');
+                $user->addMediaFromRequest('profile_picture')->toMediaCollection('profile_picture');
             }
 
             app(SendOtpAction::class)->execute($user, OtpTypeEnum::REGISTRATION);

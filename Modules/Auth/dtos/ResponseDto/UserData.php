@@ -16,8 +16,10 @@ class UserData extends Data
         public readonly string $country,
         public readonly string $username,
         public readonly string $phone_number,
+        public readonly string $dial_code,
         public readonly UserStatusEnum $status,
         public readonly KycStatusEnum $kyc_status,
+        public readonly ?string $profile_picture,
 
     ){}
 }

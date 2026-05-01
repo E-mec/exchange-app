@@ -93,9 +93,14 @@ class User extends Authenticatable implements JWTSubject,HasMedia
         ];
     }
 
-    public function getProfilePictureUrlAttribute(): string
+    public function registerMediaCollections(): void
     {
-        return $this->getFirstMediaUrl('profile_pictures');
+        $this->addMediaCollection('profile_picture')->singleFile();
+    }
+
+    public function getProfilePictureAttribute(): string
+    {
+        return $this->getFirstMediaUrl('profile_picture');
     }
 
     protected static function newFactory(): UserFactory|Factory
