@@ -2,5 +2,6 @@
     "Auth": true,
     "Helpers": true,
     "Wallet": true,
-    "Payment": true
+    "Payment": true,
+    "BillPayment": true
 }

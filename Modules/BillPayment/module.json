@@ -1,0 +1,11 @@
+{
+    "name": "BillPayment",
+    "alias": "billpayment",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\BillPayment\\Providers\\BillPaymentServiceProvider"
+    ],
+    "files": []
+}
