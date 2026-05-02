@@ -2,6 +2,8 @@
 
 namespace Modules\Wallet\actions;
 
+use Modules\Wallet\Models\WalletTransaction;
+
 class GenerateLedgerHashAction
 {
     /**
