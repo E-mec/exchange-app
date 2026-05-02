@@ -2,13 +2,16 @@
 
 namespace Modules\Wallet\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Wallet\app\Observers\WalletTransactionObserver;
 use Modules\Wallet\Database\Factories\WalletTransactionFactory;
 use Modules\Wallet\enums\CurrencyEnum;
 use Modules\Wallet\enums\TransactionTypeEnum;
 
+#[ObservedBy([WalletTransactionObserver::class])]
 class WalletTransaction extends Model
 {
     use HasFactory;

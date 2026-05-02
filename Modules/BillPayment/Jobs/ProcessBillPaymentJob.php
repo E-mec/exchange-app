@@ -3,22 +3,29 @@
 namespace Modules\BillPayment\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Modules\BillPayment\actions\ProcessBillPaymentAction;
+use Modules\BillPayment\Models\BillPayment;
+use Throwable;
 
 class ProcessBillPaymentJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct() {}
+    public int $tries   = 3;
+    public int $timeout = 60;
+    public int $backoff = 10; // seconds between retries
+
+    public function __construct(public readonly BillPayment $billPayment) {}
 
     /**
-     * Execute the job.
+     * @throws Throwable
      */
-    public function handle(): void {}
+    public function handle(ProcessBillPaymentAction $action): void
+    {
+        $action->handle($this->billPayment);
+    }
 }

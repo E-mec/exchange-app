@@ -9,6 +9,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Modules\BillPayment\Models\BillPayment;
 
 class BillPaymentFailed
 {
@@ -17,7 +18,7 @@ class BillPaymentFailed
     /**
      * Create a new event instance.
      */
-    public function __construct() {}
+    public function __construct(public readonly BillPayment $billPayment) {}
 
     /**
      * Get the channels the event should be broadcast on.

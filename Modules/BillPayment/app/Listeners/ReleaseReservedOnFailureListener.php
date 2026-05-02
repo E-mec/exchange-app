@@ -2,18 +2,22 @@
 
 namespace Modules\BillPayment\app\Listeners;
 
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+
+use Modules\BillPayment\app\Events\BillPaymentFailed;
+use Modules\Wallet\actions\ReleaseReservedFundsAction;
 
 class ReleaseReservedOnFailureListener
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct() {}
+    public function __construct(private readonly ReleaseReservedFundsAction $releaseReserved) {}
 
-    /**
-     * Handle the event.
-     */
-    public function handle($event): void {}
+    public function handle(BillPaymentFailed $event): void
+    {
+        $this->releaseReserved->execute([
+            'walletId'       => $event->billPayment->wallet_id,
+            'userId'         => $event->billPayment->user_id,
+            'reserveTxId'    => $event->billPayment->wallet_reserve_tx_id,
+            'reference'      => $event->billPayment->reference,
+            'idempotencyKey' => 'bill:release:' . $event->billPayment->reference,
+        ]);
+    }
 }

@@ -2,18 +2,21 @@
 
 namespace Modules\BillPayment\app\Listeners;
 
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Modules\BillPayment\app\Events\BillPaymentSuccessful;
+use Modules\Wallet\actions\FinalizeDebitAction;
 
 class FinalizeDebitOnSuccessListener
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct() {}
+    public function __construct(private readonly FinalizeDebitAction $finalizeDebit) {}
 
-    /**
-     * Handle the event.
-     */
-    public function handle($event): void {}
+    public function handle(BillPaymentSuccessful $event): void
+    {
+        $this->finalizeDebit->execute([
+            'walletId'       => $event->billPayment->wallet_id,
+            'userId'         => $event->billPayment->user_id,
+            'reserveTxId'    => $event->billPayment->wallet_reserve_tx_id,
+            'reference'      => $event->billPayment->reference,
+            'idempotencyKey' => 'bill:finalize:' . $event->billPayment->reference,
+        ]);
+    }
 }

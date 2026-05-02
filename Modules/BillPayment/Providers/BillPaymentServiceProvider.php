@@ -2,8 +2,11 @@
 
 namespace Modules\BillPayment\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\BillPayment\app\Console\SyncBillServicesCommand;
+use Modules\BillPayment\app\Resolvers\BillProviderResolver;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,6 +30,8 @@ class BillPaymentServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+
     }
 
     /**
@@ -36,6 +41,9 @@ class BillPaymentServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        $this->app->singleton(BillProviderResolver::class);
+
     }
 
     /**
@@ -43,7 +51,7 @@ class BillPaymentServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+         $this->commands([SyncBillServicesCommand::class]);
     }
 
     /**
@@ -55,6 +63,14 @@ class BillPaymentServiceProvider extends ServiceProvider
         //     $schedule = $this->app->make(Schedule::class);
         //     $schedule->command('inspire')->hourly();
         // });
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('bills:sync', ['--provider=all'])
+                ->daily()
+                ->at('02:00')
+                ->withoutOverlapping()
+                ->runInBackground();
+        });
     }
 
     /**

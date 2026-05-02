@@ -11,7 +11,18 @@ class InitiateBillPaymentRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'service_slug'     => ['required', 'string', 'exists:bill_services,slug'],
+            'recipient'        => ['required', 'string'],
+            'amount'           => ['required', 'numeric', 'min:1'],
+            'currency'         => ['required', 'string', 'size:3'],
+            'wallet_id'        => ['required', 'integer', 'exists:wallets,id'],
+            'variation_code'   => ['sometimes', 'nullable', 'string'],
+            'idempotency_key'  => ['required', 'string', 'max:100'],
+            'meta'             => ['sometimes', 'array'],
+            'meta.phone'       => ['sometimes', 'string'],
+            'meta.meter_type'  => ['sometimes', 'string', 'in:prepaid,postpaid'],
+        ];
     }
 
     /**

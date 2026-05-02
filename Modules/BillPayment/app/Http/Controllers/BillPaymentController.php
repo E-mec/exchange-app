@@ -3,54 +3,47 @@
 namespace Modules\BillPayment\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Modules\BillPayment\actions\InitiateBillPaymentAction;
+use Modules\BillPayment\app\Http\Requests\InitiateBillPaymentRequest;
+use Modules\BillPayment\Models\BillPayment;
 
 class BillPaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('billpayment::index');
+    public function initiate(
+        InitiateBillPaymentRequest $request,
+        InitiateBillPaymentAction $action
+    ): JsonResponse {
+        $billPayment = $action->handle(
+            data:   $request->validated(),
+            userId: $request->user()->id,
+        );
+
+        return response()->json([
+            'message' => 'Bill payment initiated.',
+            'data'    => [
+                'reference' => $billPayment->reference,
+                'status'    => $billPayment->status,
+                'amount'    => $billPayment->amount,
+            ],
+        ], 202);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function status(int $id): JsonResponse
     {
-        return view('billpayment::create');
+        $billPayment = BillPayment::where('id', $id)
+            ->where('user_id', request()->user()->id)
+            ->firstOrFail();
+
+        return response()->json(['data' => $billPayment]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function history(): JsonResponse
     {
-        return view('billpayment::show');
+        $payments = BillPayment::where('user_id', request()->user()->id)
+            ->latest()
+            ->paginate(20);
+
+        return response()->json(['data' => $payments]);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('billpayment::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

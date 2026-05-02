@@ -2,13 +2,16 @@
 
 namespace Modules\Wallet\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Auth\Models\User;
+use Modules\Wallet\app\Observers\WithdrawalObserver;
 use Modules\Wallet\database\factories\WithdrawalFactory;
 use Modules\Wallet\enums\WithdrawalStatusEnum;
 
+#[ObservedBy([WithdrawalObserver::class])]
 class Withdrawal extends Model
 {
     use HasFactory;

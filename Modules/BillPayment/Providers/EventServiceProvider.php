@@ -3,6 +3,13 @@
 namespace Modules\BillPayment\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\BillPayment\app\Events\BillPaymentFailed;
+use Modules\BillPayment\app\Events\BillPaymentInitiated;
+use Modules\BillPayment\app\Events\BillPaymentSuccessful;
+use Modules\BillPayment\app\Listeners\FinalizeDebitOnSuccessListener;
+use Modules\BillPayment\app\Listeners\ReleaseReservedOnFailureListener;
+use Modules\BillPayment\app\Listeners\SendBillFailureNotificationListener;
+use Modules\BillPayment\app\Listeners\SendBillReceiptListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -11,15 +18,21 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        BillPaymentInitiated::class => [
+            // Add LogBillInitiatedListener here when needed
+        ],
+        BillPaymentSuccessful::class => [
+            FinalizeDebitOnSuccessListener::class,
+            SendBillReceiptListener::class,
+        ],
+        BillPaymentFailed::class => [
+            ReleaseReservedOnFailureListener::class,
+            SendBillFailureNotificationListener::class,
+        ],
+    ];
 
-    /**
-     * Indicates if events should be discovered.
-     *
-     * @var bool
-     */
-    protected static $shouldDiscoverEvents = true;
-
+    protected static $shouldDiscoverEvents = false;
     /**
      * Configure the proper event listeners for email verification.
      */
