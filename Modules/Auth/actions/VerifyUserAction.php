@@ -42,7 +42,7 @@ class VerifyUserAction
 
         return [
             'token' => JWTAuth::fromUser($user),
-            'user' => UserData::from($user->refresh())
+            'user' => UserData::from($user->refresh()->load('country'))
         ];
 
     }

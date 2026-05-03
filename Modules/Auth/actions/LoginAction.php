@@ -33,7 +33,7 @@ class LoginAction
             ]);
         }
 
-        return $user;
+        return $user->load('country');
 
     }
 }

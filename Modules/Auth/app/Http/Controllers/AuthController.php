@@ -24,7 +24,7 @@ class AuthController extends Controller
         $user =  DB::transaction(fn() => $action->handle($dto));
 
         $data = [
-            'user' => UserData::from($user),
+            'user' => UserData::from($user->load('country')),
         ];
 
         return successResponse(

@@ -24,14 +24,28 @@ class UpdateProfileRequest extends FormRequest
                 Rule::unique('users', 'username')->ignore($user->username)
             ],
 
+//            'phone_number' => [
+//                'sometimes',
+//                'string',
+//                'max:20',
+//                Rule::unique('users', 'phone_number')->ignore($user->phone_number),
+//            ],
+//            'dial_code' => ['sometimes', 'string', 'max:10'],
+//            'country' => ['sometimes', 'string', 'max:100'],
             'phone_number' => [
                 'sometimes',
                 'string',
-                'max:20',
-                Rule::unique('users', 'phone_number')->ignore($user->phone_number),
+                'regex:/^[0-9]{6,15}$/', // digits only, realistic length
+                Rule::unique('users', 'phone_number')
+                    ->where(fn ($q) => $q->where('dial_code', request('dial_code')))->ignore($user->phone_number)
             ],
-            'dial_code' => ['sometimes', 'string', 'max:10'],
-            'country' => ['sometimes', 'string', 'max:100'],
+
+            'dial_code' => [
+                'sometimes',
+                'string',
+                'regex:/^\+\d{1,4}$/', // +234, +1, +44 etc
+            ],
+            'country_id' => ['sometimes', 'string', Rule::exists('countries', 'id')],
         ];
     }
 

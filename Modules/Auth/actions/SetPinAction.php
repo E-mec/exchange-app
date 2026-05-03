@@ -21,6 +21,6 @@ class SetPinAction
         $user->pin = Hash::make($data['pin']);
         $user->save();
 
-        return $user->fresh();
+        return $user->fresh()->load('country');
     }
 }

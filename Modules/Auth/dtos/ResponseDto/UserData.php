@@ -4,6 +4,7 @@ namespace Modules\Auth\dtos\ResponseDto;
 
 use Modules\Auth\enums\KycStatusEnum;
 use Modules\Auth\enums\UserStatusEnum;
+use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
 
 class UserData extends Data
@@ -13,6 +14,8 @@ class UserData extends Data
         public readonly string $firstname,
         public readonly string $lastname,
         public readonly string $email,
+
+        #[MapInputName('country_name')]
         public readonly string $country,
         public readonly string $username,
         public readonly string $phone_number,

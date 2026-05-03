@@ -8,4 +8,5 @@ return [
     Modules\Wallet\Providers\RouteServiceProvider::class,
     Modules\Wallet\Providers\EventServiceProvider::class,
     Modules\Payment\Providers\PaymentServiceProvider::class,
+    Modules\BillPayment\Providers\BillPaymentServiceProvider::class,
 ];

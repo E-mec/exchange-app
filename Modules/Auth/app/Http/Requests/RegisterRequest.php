@@ -29,10 +29,18 @@ class RegisterRequest extends FormRequest
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone_number' => [
                 'required',
+                'string',
+                'regex:/^[0-9]{6,15}$/', // digits only, realistic length
                 Rule::unique('users', 'phone_number')
+                    ->where(fn ($q) => $q->where('dial_code', request('dial_code')))
             ],
-            'dial_code' => ['required', 'string', 'max:10'],
-            'country' => ['required', 'string', 'max:100'],
+
+            'dial_code' => [
+                'required',
+                'string',
+                'regex:/^\+\d{1,4}$/', // +234, +1, +44 etc
+            ],
+            'country_id' => ['required', 'string', Rule::exists('countries', 'id')],
             'pin' => ['nullable', 'digits:6', 'confirmed'],
             'referred_by' => ['nullable', Rule::exists('users', 'id')],
             'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],

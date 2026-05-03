@@ -30,7 +30,7 @@ class CreateUserAction
                 'password' => Hash::make($data->password),
                 'phone_number' => $data->phone_number,
                 'dial_code' => $data->dial_code,
-                'country' => $data->country,
+                'country_id' => $data->country_id,
                 'pin' =>  Hash::make($data->pin),
                 'referral_code' => Str::random(8),
                 'referred_by' => $data->referred_by,
@@ -46,7 +46,7 @@ class CreateUserAction
 
             event(new UserRegisteredEvent($user));
 
-            return $user;
+            return $user->load('country');
         });
 
     }

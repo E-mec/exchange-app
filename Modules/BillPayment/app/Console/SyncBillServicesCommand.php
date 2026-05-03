@@ -40,6 +40,12 @@ class SyncBillServicesCommand extends Command
         }
 
         foreach ($providers as $providerEnum) {
+            // Skip providers with no credentials configured yet
+            if (! $this->isConfigured($providerEnum)) {
+                $this->warn("\n[{$providerEnum->value}] No credentials configured — skipping.");
+                continue;
+            }
+
             $this->info("\n[{$providerEnum->value}] Starting sync...");
 
             $provider = $this->resolver->resolve($providerEnum);
@@ -143,5 +149,14 @@ class SyncBillServicesCommand extends Command
 
         $this->info("\nSync complete.");
         return self::SUCCESS;
+    }
+
+    private function isConfigured(BillProviderEnum $provider): bool
+    {
+        return match ($provider) {
+            BillProviderEnum::VTPASS   => ! empty(config('billpayment.providers.vtpass.api_key')),
+            BillProviderEnum::BUYPOWER => ! empty(config('billpayment.providers.buypower.token')),
+            BillProviderEnum::BAXI     => ! empty(config('billpayment.providers.baxi.api_key')),
+        };
     }
 }

@@ -13,6 +13,6 @@ class UpdateProfileAction
 
         $user->update($data);
 
-        return $user;
+        return $user->load('country');
     }
 }
