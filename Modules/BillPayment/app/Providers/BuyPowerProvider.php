@@ -109,4 +109,11 @@ class BuyPowerProvider implements BillProviderInterface
         $incoming = $request->bearerToken();
         return hash_equals($this->token, (string) $incoming);
     }
+
+    public function isSuccessful(array $response): bool
+    {
+        return ($response['status'] ?? false) === true
+            && ($response['responseCode'] ?? '') === '00';
+    }
+
 }

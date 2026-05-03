@@ -3,6 +3,7 @@
 namespace Modules\Wallet\actions;
 
 use App\Exceptions\CustomException;
+use Illuminate\Support\Facades\DB;
 use Modules\Wallet\app\Interfaces\ReleaseReservedFunds;
 use Modules\Wallet\enums\TransactionTypeEnum;
 use Modules\Wallet\Models\WalletTransaction;
@@ -13,9 +14,7 @@ final class ReleaseReservedFundsAction implements ReleaseReservedFunds
         protected ApplyTransactionOrchestratorAction $orchestrator
     ) {}
 
-    /**
-     * @throws CustomException
-     */
+
     public function execute(array $data): WalletTransaction
     {
         return DB::transaction(function () use ($data) {

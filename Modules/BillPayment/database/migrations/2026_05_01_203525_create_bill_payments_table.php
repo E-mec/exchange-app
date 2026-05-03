@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('wallet_id')->constrained();
             $table->foreignId('bill_service_id')->constrained('bill_services');  // ADD — was missing
+            $table->string('service_id');
             $table->string('variation_code')->nullable();                         // ADD — needed for data/tv/internet
             $table->decimal('amount', 18, 2);
             $table->string('reference')->unique();
@@ -27,7 +28,11 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->string('provider_reference')->nullable();
             $table->string('token')->nullable();
-            $table->string('wallet_reserve_tx_id')->nullable();
+            $table->unsignedBigInteger('wallet_reserve_tx_id')->nullable();
+            $table->foreign('wallet_reserve_tx_id')
+                ->references('id')
+                ->on('wallet_transactions')
+                ->nullOnDelete();
             $table->json('meta')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();

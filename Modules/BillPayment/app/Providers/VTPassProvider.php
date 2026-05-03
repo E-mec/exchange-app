@@ -53,7 +53,7 @@ class VTPassProvider implements BillProviderInterface
 
         foreach (self::TYPE_MAP as $identifier => $type) {
             try {
-                $response = Http::withHeaders($this->headers())
+                $response = Http::withHeaders($this->getHeaders())
                     ->get("{$this->baseUrl}/services", [
                         'identifier' => $identifier,
                     ]);
@@ -91,7 +91,7 @@ class VTPassProvider implements BillProviderInterface
 
     public function getVariations(string $providerServiceId): array
     {
-        $response = Http::withHeaders($this->headers())
+        $response = Http::withHeaders($this->getHeaders())
             ->get("{$this->baseUrl}/service-variations", [
                 'serviceID' => $providerServiceId,
             ]);
@@ -119,7 +119,7 @@ class VTPassProvider implements BillProviderInterface
 
     public function validateRecipient(string $providerServiceId, string $recipient): array
     {
-        $response = Http::withHeaders($this->headers())
+        $response = Http::withHeaders($this->postHeaders())
             ->post("{$this->baseUrl}/merchant-verify", [
                 'serviceID' => $providerServiceId,
                 'billersCode' => $recipient,
@@ -142,7 +142,7 @@ class VTPassProvider implements BillProviderInterface
             $payload['variation_code'] = $dto->variationCode;
         }
 
-        $response = Http::withHeaders($this->headers())
+        $response = Http::withHeaders($this->postHeaders())
             ->post("{$this->baseUrl}/pay", $payload);
 
         return $response->json();
@@ -150,7 +150,7 @@ class VTPassProvider implements BillProviderInterface
 
     public function queryStatus(string $requestId): array
     {
-        $response = Http::withHeaders($this->headers())
+        $response = Http::withHeaders($this->postHeaders())
             ->post("{$this->baseUrl}/requery", [
                 'request_id' => $requestId,
             ]);
@@ -167,15 +167,21 @@ class VTPassProvider implements BillProviderInterface
         return hash_equals($expected, (string)$signature);
     }
 
+    public function isSuccessful(array $response): bool
+    {
+        return ($response['code'] ?? '') === '000';
+    }
+
 // ── Helpers ────────────────────────────────────────────
 
-    private function headers(): array
+    private function getHeaders(): array
     {
-        return [
-            'api-key' => $this->apiKey,
-            'public-key' => $this->publicKey,
-            'secret-key' => $this->secretKey,
-        ];
+        return ['api-key' => $this->apiKey, 'public-key' => $this->publicKey];
+    }
+
+    private function postHeaders(): array
+    {
+        return ['api-key' => $this->apiKey, 'secret-key' => $this->secretKey];
     }
 
     private function extractValidity(string $planName): ?string

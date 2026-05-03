@@ -89,8 +89,15 @@ class BaxiProvider implements BillProviderInterface
         return hash_equals($expected, (string) $signature);
     }
 
+    public function isSuccessful(array $response): bool
+    {
+        return ($response['code'] ?? '') === '200';
+    }
+
     private function headers(): array
     {
         return ['x-api-key' => $this->apiKey];
     }
+
+
 }

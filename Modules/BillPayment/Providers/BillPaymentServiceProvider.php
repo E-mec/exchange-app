@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\BillPayment\app\Console\SyncBillServicesCommand;
 use Modules\BillPayment\app\Resolvers\BillProviderResolver;
+use Modules\BillPayment\Jobs\SweepStalePaymentsJob;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -70,6 +71,10 @@ class BillPaymentServiceProvider extends ServiceProvider
                 ->at('02:00')
                 ->withoutOverlapping()
                 ->runInBackground();
+
+            $schedule->job(SweepStalePaymentsJob::class)
+                ->everyFiveMinutes()
+                ->withoutOverlapping();
         });
     }
 

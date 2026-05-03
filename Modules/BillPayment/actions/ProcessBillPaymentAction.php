@@ -14,13 +14,18 @@ class ProcessBillPaymentAction
 {
     public function __construct(private readonly BillProviderResolver $resolver) {}
 
+    /**
+     * @throws \Throwable
+     */
     public function handle(BillPayment $billPayment): void
     {
         $billPayment->update(['status' => BillStatusEnum::PROCESSING->value]);
 
-        $provider = $this->resolver->resolve(
-            BillProviderEnum::from($billPayment->provider)
-        );
+//        $provider = $this->resolver->resolve(
+//            BillProviderEnum::from($billPayment->provider)
+//        );
+
+        $provider = $this->resolver->resolve($billPayment->provider);
 
         $dto = new BillPaymentData(
             reference:     $billPayment->reference,
@@ -36,7 +41,7 @@ class ProcessBillPaymentAction
         try {
             $response = $provider->purchase($dto);
 
-            $success = in_array($response['code'] ?? $response['status'] ?? '', ['000', 'success', 'delivered']);
+            $success = $provider->isSuccessful($response);
 
             if ($success) {
                 $billPayment->update([
@@ -57,13 +62,15 @@ class ProcessBillPaymentAction
                 event(new BillPaymentFailed($billPayment));
             }
         } catch (\Throwable $e) {
-            $billPayment->update([
-                'status' => BillStatusEnum::FAILED->value,
-                'meta'   => array_merge($billPayment->meta ?? [], ['exception' => $e->getMessage()]),
-            ]);
 
-            event(new BillPaymentFailed($billPayment));
-            throw $e; // let the job retry
+            // Log the attempt, update meta — but DON'T mark failed or release funds yet
+            $billPayment->update([
+                'meta' => array_merge($billPayment->meta ?? [], [
+                    'last_exception' => $e->getMessage(),
+                    'attempt'        => ($billPayment->meta['attempt'] ?? 0) + 1,
+                ]),
+            ]);
+            throw $e;  // job will retry — funds stay reserved
         }
     }
 }

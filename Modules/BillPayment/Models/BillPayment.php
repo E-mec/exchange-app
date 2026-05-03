@@ -3,14 +3,17 @@
 namespace Modules\BillPayment\Models;
 
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\BillPayment\app\Observers\BillPaymentObserver;
 use Modules\BillPayment\Database\Factories\BillPaymentFactory;
 use Modules\BillPayment\Enums\BillStatusEnum;
 use Modules\BillPayment\Enums\BillTypeEnum;
 use Modules\BillPayment\Enums\BillProviderEnum;
 
+#[ObservedBy([BillPaymentObserver::class])]
 class BillPayment extends Model
 {
     use HasFactory;

@@ -8,6 +8,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\BillPayment\actions\ProcessBillPaymentAction;
+use Modules\BillPayment\app\Events\BillPaymentFailed;
+use Modules\BillPayment\Enums\BillStatusEnum;
 use Modules\BillPayment\Models\BillPayment;
 use Throwable;
 
@@ -27,5 +29,22 @@ class ProcessBillPaymentJob implements ShouldQueue
     public function handle(ProcessBillPaymentAction $action): void
     {
         $action->handle($this->billPayment);
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        // Only fires after all retries are exhausted
+
+        $this->billPayment->refresh();
+
+        $this->billPayment->update([
+            'status'       => BillStatusEnum::FAILED->value,
+            'processed_at' => now(),
+            'meta'         => array_merge($this->billPayment->meta ?? [], [
+                'failure_reason' => $exception->getMessage(),
+            ]),
+        ]);
+
+        event(new BillPaymentFailed($this->billPayment));  // releases funds here, safely
     }
 }

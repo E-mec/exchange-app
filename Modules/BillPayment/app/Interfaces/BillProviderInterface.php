@@ -45,5 +45,8 @@ interface BillProviderInterface
      * Verify the webhook signature/payload is genuinely from this provider.
      */
     public function verifyWebhook(Request $request): bool;
+
+    public function isSuccessful(array $response): bool;
+
 }
 

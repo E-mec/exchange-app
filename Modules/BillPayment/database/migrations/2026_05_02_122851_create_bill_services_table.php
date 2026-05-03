@@ -33,14 +33,18 @@ return new class extends Migration
             $table->unique(['provider', 'provider_service_id']); // MISSING — sync upsert relies on this
             $table->index(['type', 'is_active']);
             $table->index(['provider', 'is_active']);
+
+
         });
 
-// Add after Schema::create()
-        DB::statement("ALTER TABLE bill_services ADD CONSTRAINT chk_bill_service_type
-    CHECK (type IN ('airtime','data','electricity','tv','internet','water','betting'))");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE bill_services ADD CONSTRAINT chk_bill_service_type
+                CHECK (type IN ('airtime','data','electricity','tv','internet','water','betting'))");
 
-        DB::statement("ALTER TABLE bill_services ADD CONSTRAINT chk_bill_service_provider
-    CHECK (provider IN ('vtpass','buypower','baxi'))");
+            DB::statement("ALTER TABLE bill_services ADD CONSTRAINT chk_bill_service_provider
+                CHECK (provider IN ('vtpass','buypower','baxi'))");
+        }
+
     }
 
     /**
