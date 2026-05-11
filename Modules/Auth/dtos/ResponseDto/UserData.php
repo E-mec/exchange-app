@@ -16,7 +16,7 @@ class UserData extends Data
         public readonly string $email,
 
         #[MapInputName('country_name')]
-        public readonly string $country,
+        public readonly ?string $country,
         public readonly string $username,
         public readonly string $phone_number,
         public readonly string $dial_code,

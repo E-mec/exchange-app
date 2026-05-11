@@ -110,9 +110,9 @@ class User extends Authenticatable implements JWTSubject,HasMedia,MustVerifyEmai
         return $this->belongsTo(Country::class);
     }
 
-    public function getCountryNameAttribute(): string
+    public function getCountryNameAttribute(): ?string
     {
-        return $this->country->name;
+        return $this->country?->name;
     }
     protected static function newFactory(): UserFactory|Factory
     {
