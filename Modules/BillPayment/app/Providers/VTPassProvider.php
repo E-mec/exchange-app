@@ -2,6 +2,7 @@
 
 namespace Modules\BillPayment\app\Providers;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,7 @@ use Modules\BillPayment\dtos\ProviderServiceDto;
 use Modules\BillPayment\dtos\ProviderVariationDto;
 use Modules\BillPayment\Enums\BillProviderEnum;
 use Modules\BillPayment\Enums\BillTypeEnum;
+use Throwable;
 
 class VTPassProvider implements BillProviderInterface
 {
@@ -79,7 +81,7 @@ class VTPassProvider implements BillProviderInterface
                         imageUrl: $item['image'] ?? null,
                     );
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error("VTPass: exception fetching services for [{$identifier}]", [
                     'error' => $e->getMessage(),
                 ]);
@@ -117,17 +119,37 @@ class VTPassProvider implements BillProviderInterface
 
 // ── Transactions ───────────────────────────────────────
 
+    /**
+     * @throws Throwable
+     * @throws ConnectionException
+     */
     public function validateRecipient(string $providerServiceId, string $recipient): array
     {
-        $response = Http::withHeaders($this->postHeaders())
-            ->post("{$this->baseUrl}/merchant-verify", [
-                'serviceID' => $providerServiceId,
-                'billersCode' => $recipient,
-            ]);
+        try {
+            $response = Http::withHeaders($this->postHeaders())
+                ->post("{$this->baseUrl}/merchant-verify", [
+                    'serviceID'   => $providerServiceId,
+                    'billersCode' => $recipient,
+                ]);
 
-        return $response->json();
+            $body = $response->json();
+
+            if (! is_array($body)) {
+                return ['code' => 'ERROR', 'response_description' => 'Unexpected response'];
+            }
+
+            return $body;
+
+        } catch (Throwable $e) {
+            Log::error('VTPass: exception during /merchant-verify', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 
+    /**
+     * @throws Throwable
+     * @throws ConnectionException
+     */
     public function purchase(BillPaymentData $dto): array
     {
         $payload = [
@@ -142,20 +164,73 @@ class VTPassProvider implements BillProviderInterface
             $payload['variation_code'] = $dto->variationCode;
         }
 
-        $response = Http::withHeaders($this->postHeaders())
-            ->post("{$this->baseUrl}/pay", $payload);
+        try {
+            $response = Http::withHeaders($this->postHeaders())
+                ->post("{$this->baseUrl}/pay", $payload);
 
-        return $response->json();
-    }
+            // VTPass sometimes returns plain string errors instead of JSON
+            $body = $response->json();
 
-    public function queryStatus(string $requestId): array
-    {
-        $response = Http::withHeaders($this->postHeaders())
-            ->post("{$this->baseUrl}/requery", [
-                'request_id' => $requestId,
+            if (! is_array($body)) {
+                Log::error('VTPass: non-JSON response from /pay', [
+                    'reference' => $dto->reference,
+                    'status'    => $response->status(),
+                    'body'      => $response->body(),
+                ]);
+
+                // Return a normalised failure array so the caller can handle it cleanly
+                return [
+                    'code'                 => 'ERROR',
+                    'response_description' => is_string($body) ? $body : 'Unexpected response from VTPass',
+                ];
+            }
+
+            Log::debug('VTPass: /pay response', [
+                'reference' => $dto->reference,
+                'code'      => $body['code'] ?? null,
+                'description' => $body['response_description'] ?? null,  // ADD
+                'content'   => $body['content'] ?? null,
             ]);
 
-        return $response->json();
+            return $body;
+
+        } catch (Throwable $e) {
+            Log::error('VTPass: exception during /pay', [
+                'reference' => $dto->reference,
+                'error'     => $e->getMessage(),
+                'description' => $body['response_description'] ?? null,  // ADD
+                'content'   => $body['content'] ?? null,
+            ]);
+
+            // Re-throw so ProcessBillPaymentAction catches it and triggers job retry
+            throw $e;
+        }
+    }
+
+    /**
+     * @throws Throwable
+     * @throws ConnectionException
+     */
+    public function queryStatus(string $requestId): array
+    {
+        try {
+            $response = Http::withHeaders($this->postHeaders())
+                ->post("{$this->baseUrl}/requery", [
+                    'request_id' => $requestId,
+                ]);
+
+            $body = $response->json();
+
+            if (! is_array($body)) {
+                return ['code' => 'ERROR', 'response_description' => 'Unexpected response'];
+            }
+
+            return $body;
+
+        } catch (Throwable $e) {
+            Log::error('VTPass: exception during /requery', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 
     public function verifyWebhook(Request $request): bool
@@ -169,7 +244,16 @@ class VTPassProvider implements BillProviderInterface
 
     public function isSuccessful(array $response): bool
     {
-        return ($response['code'] ?? '') === '000';
+        if (($response['code'] ?? '') === '000') {
+            return true;
+        }
+
+        // VTPass sandbox returns 016 but transaction is actually processed
+        // Check if a transactionId was generated — that means it went through
+        $transactionId = $response['content']['transactions']['transactionId'] ?? null;
+        $status = $response['content']['transactions']['status'] ?? null;
+
+        return $transactionId !== null && $status === 'delivered';
     }
 
 // ── Helpers ────────────────────────────────────────────
@@ -181,7 +265,11 @@ class VTPassProvider implements BillProviderInterface
 
     private function postHeaders(): array
     {
-        return ['api-key' => $this->apiKey, 'secret-key' => $this->secretKey];
+        return [
+            'api-key' => $this->apiKey,
+            'public-key' => $this->publicKey,
+            'secret-key' => $this->secretKey
+        ];
     }
 
     private function extractValidity(string $planName): ?string

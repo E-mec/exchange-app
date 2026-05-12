@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Models;
 
+ use App\contracts\UserContract;
  use App\Models\Country;
  use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -18,7 +19,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class User extends Authenticatable implements JWTSubject,HasMedia,MustVerifyEmail
+class User extends Authenticatable implements JWTSubject,HasMedia,MustVerifyEmail,UserContract
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, UserRelationshipTrait, InteractsWithMedia;

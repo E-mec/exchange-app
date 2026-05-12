@@ -2,6 +2,7 @@
 
 namespace Modules\BillPayment\actions;
 
+use Illuminate\Support\Facades\Log;
 use Modules\BillPayment\app\Events\BillPaymentFailed;
 use Modules\BillPayment\app\Events\BillPaymentSuccessful;
 use Modules\BillPayment\app\Resolvers\BillProviderResolver;
@@ -41,13 +42,22 @@ class ProcessBillPaymentAction
         try {
             $response = $provider->purchase($dto);
 
+            if (($response['code'] ?? '') === '028') {
+                Log::info('VTPass: 028 received, re-querying status', [
+                    'reference' => $billPayment->reference,
+                ]);
+                $response = $provider->queryStatus($billPayment->reference);
+            }
+
             $success = $provider->isSuccessful($response);
 
             if ($success) {
                 $billPayment->update([
                     'status'             => BillStatusEnum::SUCCESSFUL->value,
                     'provider_reference' => $response['content']['transactions']['transactionId'] ?? null,
-                    'token'              => $response['content']['transactions']['token'] ?? null,
+                    'token'              =>  $response['content']['transactions']['token']
+                                             ?? $response['content']['transactions']['unique_element']
+                                             ?? null,
                     'processed_at'       => now(),
                 ]);
 

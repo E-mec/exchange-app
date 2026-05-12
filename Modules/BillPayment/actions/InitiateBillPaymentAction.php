@@ -17,6 +17,17 @@ class InitiateBillPaymentAction
 
     public function handle(array $data, int $userId): BillPayment
     {
+
+        // ── Idempotency check — return existing payment if already initiated ──
+        $existing = BillPayment::where('idempotency_key', $data['idempotency_key'])
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existing) {
+            return $existing; // same key = same payment, no duplicate processing
+        }
+
+
         $service = BillService::active()
             ->where('slug', $data['service_slug'])
             ->firstOrFail();
@@ -54,7 +65,7 @@ class InitiateBillPaymentAction
                 'meta'                 => $data['meta'] ?? null,
             ]);
 
-            ProcessBillPaymentJob::dispatch($billPayment);
+            ProcessBillPaymentJob::dispatch($billPayment)->afterCommit();
             event(new BillPaymentInitiated($billPayment));
 
             return $billPayment;

@@ -2,6 +2,8 @@
 
 namespace Modules\Wallet\Models;
 
+use App\concerns\BelongsToUser;
+use App\contracts\WalletContract;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,9 +17,9 @@ use Modules\Wallet\enums\CurrencyEnum;
 use Modules\Wallet\enums\WalletStatusEnum;
 
 #[ObservedBy([WalletObserver::class])]
-class Wallet extends Model
+class Wallet extends Model implements WalletContract
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToUser;
 
     /**
      * The attributes that are mass assignable.
@@ -42,10 +44,6 @@ class Wallet extends Model
     ];
 
     // Relationships
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function transactions(): HasMany
     {
